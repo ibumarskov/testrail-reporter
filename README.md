@@ -1,0 +1,1 @@
+This repository contains scripts which allow to collect QA metrics
