@@ -1,15 +1,13 @@
-import datetime
+import os
 import copy
-import ConfigParser
+import datetime
 from prettytable import PrettyTable
 from launchpadlib.launchpad import Launchpad
 
-config = ConfigParser.RawConfigParser()
-config.read('sync.cfg')
-
-project = config.get('launchpad', 'project')
-team_name = config.get('launchpad', 'team_name')
-milestone = config.get('launchpad', 'milestone')
+project = os.getenv('LAUNCHPAD_PROJECT')
+team_name = os.getenv('LAUNCHPAD_TEAM')
+additional_team = os.getenv('LAUNCHPAD_TEAM_2', None)
+milestone = os.getenv('LAUNCHPAD_MILESTONE')
 one_week_ago_date = datetime.datetime.now() - datetime.timedelta(weeks=1)
 
 cachedir = "~/.launchpadlib/cache/"
@@ -20,6 +18,18 @@ lp_project = launchpad.projects(project)
 table = PrettyTable(["Title", "Importance", "Status", "Assigned To", "Link"])
 table.padding_width = 1 # One space between column edges and contents (default)
 table.align["Title"] = "l"
+
+print "\n\n\nList of bugs found during the last week\n"
+table_0 = copy.deepcopy(table)
+counter = 0
+for people in lp_team:
+    p = launchpad.people[people.member.name]
+    bug_list = p.searchTasks(assignee=p, created_since=one_week_ago_date)
+    for bug in bug_list:
+        table_0.add_row([bug.title, bug.importance, bug.status, bug.assignee.name, bug.web_link])
+        counter += 1
+print table_0.get_string(sortby="Importance")
+print "Total bugs found during the last week: {0}".format(counter)
 
 print "\n\n\nList of bugs verified during the last week\n"
 table_1 = copy.deepcopy(table)
@@ -44,13 +54,14 @@ for people in lp_team:
     for bug in bug_list:
         table_2.add_row([bug.title, bug.importance, bug.status, bug.assignee.name, bug.web_link])
         counter += 1
-# + bugs assigned to pi-team
-pi_team = launchpad.people['fuel-partner']
-bug_list = pi_team.searchTasks(assignee=pi_team, status=['Incomplete', 'Triaged', 'Confirmed', 'In Progress'],
+# + bugs assigned to whole team
+if additional_team is not None:
+    team2 = launchpad.people[additional_team]
+    team2_bugs = team2.searchTasks(assignee=team2, status=['Incomplete', 'Triaged', 'Confirmed', 'In Progress'],
                                milestone=milestone)
-for bug in bug_list:
-    table_2.add_row([bug.title, bug.importance, bug.status, bug.assignee.name, bug.web_link])
-    counter += 1
+    for bug in team2_bugs:
+        table_2.add_row([bug.title, bug.importance, bug.status, bug.assignee.name, bug.web_link])
+        counter += 1
 print table_2.get_string(sortby="Status")
 print "Total bugs need to be fixed: {0}".format(counter)
 
