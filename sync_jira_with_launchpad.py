@@ -115,7 +115,7 @@ def update_labels(issue, Lbug):
     if len(Lbug.bug.tags) != 0:
         labels = labels + Lbug.bug.tags
     if Lbug.status in ['Invalid', "Won't Fix"]:
-        labels.append(Lbug.status)
+        labels.append(Lbug.status.replace(' ', '_'))
     if len(labels):
         logging.info('Add following labels: {0}'.format(labels))
         for label in labels:
