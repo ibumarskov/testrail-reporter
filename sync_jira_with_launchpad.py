@@ -10,10 +10,11 @@ user = os.getenv('JIRA_USER')
 password = os.getenv('JIRA_PASSWORD')
 jira_project = os.getenv('JIRA_PROJECT')
 release = os.getenv('JIRA_RELEASE')
+
 project = os.getenv('LAUNCHPAD_PROJECT')
 team_name = os.getenv('LAUNCHPAD_TEAM')
-additional_team = os.getenv('LAUNCHPAD_TEAM_2', None)
-milestone = os.getenv('LAUNCHPAD_MILESTONE')
+milestone = os.getenv('LAUNCHPAD_MILESTONE', None)
+tags = os.getenv('LAUNCHPAD_TAGS', None)
 
 cachedir = "~/.launchpadlib/cache/"
 launchpad = Launchpad.login_anonymously('just testing', 'production', cachedir)
@@ -38,7 +39,8 @@ priority_map = {'Critical': 'Critical',
                 'High': 'Major',
                 'Medium': 'Nice to have',
                 'Low': 'Some day',
-                'Wishlist': 'Some day'}
+                'Wishlist': 'Some day',
+                'Undecided': 'Some day'}
 
 user_map = {'popovych-andrey':'apopovych'}
 
@@ -51,25 +53,45 @@ def get_jira_bugs(jira_instance, project, release):
                                 maxResults=issues_count)
     return tasks
 
+def check_duplicate_user(user, peoples):
+    for p in peoples:
+        if p.name == user.member.name:
+            logging.info('User {0} already in list'.format(user.member.name))
+            return False
+    return True
+
+def return_indirect_members(team, teams=[], peoples=[]):
+    for member in team.members_details:
+        if member.member.is_team:
+            subteam = launchpad.people(member.member.name)
+            teams.append(subteam)
+            logging.info('{0} - team'.format(subteam))
+            return_indirect_members(subteam, teams, peoples)
+        else:
+            logging.info('{0}'.format(launchpad.people[member.member.name]))
+            if check_duplicate_user(member, peoples):
+                peoples.append(launchpad.people[member.member.name])
+    return teams, peoples
+
+def search_lp_tasks(lp_list):
+    bugs = []
+    logging.info('Filter: milestone "{0}", tags "{1}"'.format(milestone, tags))
+    for user in lp_list:
+        list_of_bugs = user.searchTasks(assignee=user, status=lp_jira_map.keys(), milestone=milestone, tags=tags)
+        for bug in list_of_bugs:
+            bugs.append(bug)
+    return bugs
+
 def get_launchpad_bugs():
     cachedir = "~/.launchpadlib/cache/"
     launchpad = Launchpad.login_anonymously('just testing', 'production', cachedir)
-    team = launchpad.people(team_name).members_details
+    team = launchpad.people(team_name)
     bugs = []
     logging.info('Team members:')
-    for people in team:
-        logging.info('{0}'.format(people))
-        p = launchpad.people[people.member.name]
-        list_of_bugs = p.searchTasks(assignee=p, status=lp_jira_map.keys(), milestone=milestone)
-        for bug in list_of_bugs:
-            bugs.append(bug)
-    # + bugs assigned to whole team
-    if additional_team is not None:
-        team2 = launchpad.people[additional_team]
-        logging.info('Additional team: {0}'.format(team2))
-        team2_bugs = team2.searchTasks(assignee=team2, status=lp_jira_map.keys(), milestone=milestone)
-        for bug in team2_bugs:
-            bugs.append(bug)
+    teams, peoples = return_indirect_members(team)
+    teams.insert(0, team)
+    bugs.extend(search_lp_tasks(teams))
+    bugs.extend(search_lp_tasks(peoples))
     return bugs
 
 def sync_jira_status(issue, Lbug):
@@ -154,18 +176,18 @@ def transition(issue, transit_status):
         logging.error("Can't change status '{0}' -> '{1}'".format(issue.fields.status, transit_status))
     return jira.issue(issue.id)
 
+logging.info("==============================================")
+logging.info("========== SYNC LAUNCHPAD WITH JIRA ==========")
+logging.info("==============================================")
 jira = JIRA(basic_auth=(user, password), options={'server': server})
 Jbugs = get_jira_bugs(jira, jira_project, release)
 lp_bugs = get_launchpad_bugs()
 
-logging.info("==============================================")
-logging.info("========== SYNC LAUNCHPAD WITH JIRA ==========")
-logging.info("==============================================")
 logging.info("{0} Jira bugs were found".format(len(Jbugs)))
 logging.info("{0} Launchpad bugs were found".format(len(lp_bugs)))
 
 for Lbug in lp_bugs:
-    logging.info("Launchpad bug {0} ({1})".format(Lbug.bug.id, Lbug.title))
+    logging.info("Launchpad bug {0} ({1})".format(Lbug.bug.id, Lbug.title.encode('utf-8')))
     it_created = False
     for Jbug in Jbugs:
         if str(Lbug.bug.id) in Jbug.fields.summary:
