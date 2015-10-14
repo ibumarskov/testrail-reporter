@@ -9,7 +9,6 @@ server = os.getenv('JIRA_URL')
 user = os.getenv('JIRA_USER')
 password = os.getenv('JIRA_PASSWORD')
 jira_project = os.getenv('JIRA_PROJECT')
-release = os.getenv('JIRA_RELEASE')
 
 project = os.getenv('LAUNCHPAD_PROJECT')
 team_name = os.getenv('LAUNCHPAD_TEAM')
@@ -44,11 +43,11 @@ priority_map = {'Critical': 'Critical',
 
 user_map = {'popovych-andrey':'apopovych'}
 
-def get_jira_bugs(jira_instance, project, release):
+def get_jira_bugs(jira_instance, project):
     issues_count=1000000,
     issues_fields='key,summary,description,issuetype,priority,labels',\
                   'status,updated,comment,fixVersions'
-    filter ='project={0} and issuetype=Bug'.format(project, release)
+    filter ='project={0} and issuetype=Bug'.format(project)
     tasks = jira_instance.search_issues(filter, fields=issues_fields,
                                 maxResults=issues_count)
     return tasks
@@ -180,7 +179,7 @@ logging.info("==============================================")
 logging.info("========== SYNC LAUNCHPAD WITH JIRA ==========")
 logging.info("==============================================")
 jira = JIRA(basic_auth=(user, password), options={'server': server})
-Jbugs = get_jira_bugs(jira, jira_project, release)
+Jbugs = get_jira_bugs(jira, jira_project)
 lp_bugs = get_launchpad_bugs()
 
 logging.info("{0} Jira bugs were found".format(len(Jbugs)))
