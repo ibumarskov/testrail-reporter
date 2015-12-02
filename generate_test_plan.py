@@ -1,25 +1,7 @@
-import sys
-#sys.path.append(sys.path[0]+"/fuel-qa")
-#sys.path.append('/home/ibumarskov/fuel-qa/fuelweb_test/testrail')
-
-from optparse import OptionParser
-import rst
 import os
-import logging
+import rst
+from optparse import OptionParser
 from testrail import *
-
-LOGS_DIR = os.environ.get('LOGS_DIR', os.getcwd())
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s %(levelname)s: %(message)s',
-                    filename=os.path.join(LOGS_DIR, 'log/generate_test_plan.log'),
-                    filemode='w')
-
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
-console.setFormatter(formatter)
-logger = logging.getLogger(__name__)
-logger.addHandler(console)
 
 url = os.environ.get('TESTRAIL_URL')
 user = os.environ.get('TESTRAIL_USER')
@@ -34,24 +16,25 @@ def main():
                       help='Name of Test Suite in TestRail')
     parser.add_option('-s', '--suite_name', dest='suite_name', default=None,
                       help='Name of Test Suite in TestRail')
-    parser.add_option('-e', '--exclude', dest='sections', default=None,
+    parser.add_option('-e', '--exclude', dest='exclude_sections', default=None,
                       help='Exclude section(s) from Test Suite. Use comma as \
                       delimeter')
+    parser.add_option('-o', '--output_path', dest='output_path', default=None,
+                      help='Set path for generated documents.')
 
     (options, args) = parser.parse_args()
 
-    # STEP #1
-    # Initialize TestRail Project and define configuration
-    logger.info('Initializing TestRail Project configuration...')
     project_name = options.project_name
     project = TestRailProject(url=url,
                               user=user,
                               password=password,
                               project=project_name)
-    logger.info('Initializing TestRail Project configuration... done')
 
     suite_name = options.suite_name
-    exclude_sections = options.sections
+    exclude_sections = options.exclude_sections
+    output_path = options.output_path
+    if not output_path:
+        output_path=''
 
     test_suite = project.get_suite_by_name(suite_name)
     all_sections = project.get_sections(test_suite['id'])
@@ -70,7 +53,6 @@ def main():
         if section_id in exclude_sections_id:
             continue
         doc = rst.Document(s['name'].encode('utf-8'))
-
 
         for t in section_cases:
             sec = rst.Section(t['title'].encode('utf-8'),depth=2)
@@ -120,7 +102,7 @@ def main():
             res = rst.Paragraph(t['custom_test_case_steps'][-1]['expected'].encode('utf-8'))
             doc.add_child(res)
 
-        doc.save("test_suite_" + s['name'].encode('utf-8').lower() + '.rst')
+        doc.save(output_path + "test_suite_" + s['name'].encode('utf-8').lower() + '.rst')
 
 def encode_adv(text):
     try:
