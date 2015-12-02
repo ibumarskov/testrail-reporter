@@ -1,6 +1,7 @@
 import os
 import copy
 import datetime
+import re
 from prettytable import PrettyTable
 from launchpadlib.launchpad import Launchpad
 
@@ -20,7 +21,7 @@ table.padding_width = 1 # One space between column edges and contents (default)
 table.align["Title"] = "l"
 
 def trim_milestone(milestone):
-    return str(milestone).replace('https://api.launchpad.net/1.0/fuel/+milestone/', '')
+    return re.sub('https:.*/', '', str(milestone))
 
 def check_duplicate_user(user, peoples):
     for p in peoples:
