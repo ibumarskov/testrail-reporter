@@ -1,5 +1,6 @@
 import os
 import logging
+import itertools
 from jira import JIRA
 from launchpadlib.launchpad import Launchpad
 
@@ -21,30 +22,31 @@ server = os.getenv('JIRA_URL')
 user = os.getenv('JIRA_USER')
 password = os.getenv('JIRA_PASSWORD')
 jira_project = os.getenv('JIRA_PROJECT')
+fix_version = os.getenv('JIRA_FIX_VERSION')
 
-project = os.getenv('LAUNCHPAD_PROJECT')
 team_name = os.getenv('LAUNCHPAD_TEAM')
-milestone = os.getenv('LAUNCHPAD_MILESTONE', None)
+milestone = os.getenv('LAUNCHPAD_MILESTONE', [None])
 tags = os.getenv('LAUNCHPAD_TAGS', None)
+if not isinstance(milestone, list):
+    milestone = milestone.split(',')
 
 cachedir = "~/.launchpadlib/cache/"
 launchpad = Launchpad.login_anonymously('just testing', 'production', cachedir)
 team = launchpad.people(team_name).members_details
 
-lp_jira_map = {'Triaged': 'Open',
-               'Confirmed': 'Open',
+lp_jira_map = {'New': 'To Do',
+               'Triaged': 'In Progress',
+               'Confirmed': 'In Progress',
                'In Progress': 'In Progress',
-               'Fix Committed': ['Review', 'Bug Verification', 'Blocked'],
-               'Fix Released': 'Done',
-               'Invalid': 'Done',
-               "Won't Fix": 'Done'}
+               'Fix Committed': 'In QA',
+               'Fix Released': 'Closed',
+               'Invalid': 'Closed',
+               "Won't Fix": 'Closed'}
 
-transition_map = {'Open': 'Stop Progress',
-                  'In Progress': 'Start Progress',
-                  'Review': 'Review',
-                  'Bug Verification': 'Verification',
-                  'Blocked': 'Block',
-                  'Done': 'Done'}
+transition_map = {'To Do': 'Stop Progress',
+                  'In Progress': 'Start Bugfixing',
+                  'In QA': 'Start Verification',
+                  'Closed': 'Close'}
 
 priority_map = {'Critical': 'Critical',
                 'High': 'Major',
@@ -55,14 +57,16 @@ priority_map = {'Critical': 'Critical',
 
 user_map = {'popovych-andrey':'apopovych'}
 
+
 def get_jira_bugs(jira_instance, project):
-    issues_count=1000000,
-    issues_fields='key,summary,description,issuetype,priority,labels',\
+    issues_count = 1000000,
+    issues_fields = 'key,summary,description,issuetype,priority,labels',\
                   'status,updated,comment,fixVersions'
-    filter ='project={0} and issuetype=Bug'.format(project)
+    filter = 'project={0} and issuetype=Bug and fixVersion="{1}"'.format(project, fix_version)
     tasks = jira_instance.search_issues(filter, fields=issues_fields,
                                 maxResults=issues_count)
     return tasks
+
 
 def check_duplicate_user(user, peoples):
     for p in peoples:
@@ -70,6 +74,7 @@ def check_duplicate_user(user, peoples):
             logger.info('User {0} already in list'.format(user.member.name))
             return False
     return True
+
 
 def return_indirect_members(team, teams=[], peoples=[]):
     for member in team.members_details:
@@ -84,14 +89,16 @@ def return_indirect_members(team, teams=[], peoples=[]):
                 peoples.append(launchpad.people[member.member.name])
     return teams, peoples
 
+
 def search_lp_tasks(lp_list):
     bugs = []
     logger.info('Filter: milestone "{0}", tags "{1}"'.format(milestone, tags))
-    for user in lp_list:
-        list_of_bugs = user.searchTasks(assignee=user, status=lp_jira_map.keys(), milestone=milestone, tags=tags)
+    for user, m in itertools.product(lp_list, milestone):
+        list_of_bugs = user.searchTasks(assignee=user, status=lp_jira_map.keys(), milestone=m.strip(), tags=tags)
         for bug in list_of_bugs:
             bugs.append(bug)
     return bugs
+
 
 def get_launchpad_bugs():
     cachedir = "~/.launchpadlib/cache/"
@@ -105,24 +112,23 @@ def get_launchpad_bugs():
     bugs.extend(search_lp_tasks(peoples))
     return bugs
 
+
 def sync_jira_status(issue, Lbug):
     logger.info('=== Start to sync {0} with launchpad ==='.format(issue.key))
     lp_status = Lbug.status
     set_priority(issue, Lbug)
     update_labels(issue, Lbug)
-    if lp_jira_map[lp_status] in ['Open', 'In Progress']:
+    if lp_jira_map[lp_status] in ['To Do', 'In Progress']:
         assign_bug(issue, Lbug)
     if str(issue.fields.status) in lp_jira_map[lp_status]:
         logger.info('{0} in actual state.'.format(issue.key))
         logger.info('Jira status: {0}, Launchpad status: {1}'.format(issue.fields.status, lp_status))
         return True
     else:
-        if lp_status == 'Fix Committed':
-            new_status = 'Review'
-        else:
-            new_status = lp_jira_map[lp_status]
+        new_status = lp_jira_map[lp_status]
         change_issue_status(issue, new_status)
         logger.info('Status was successfully updated')
+
 
 def assign_bug(issue, Lbug):
     # Assign bug to developer
@@ -136,12 +142,15 @@ def assign_bug(issue, Lbug):
         jira.assign_issue(issue, user)
         logger.warning("Issue was assigned to {0}".format(user))
     except:
+        jira.assign_issue(issue, None)
         logger.error("Can't assign issue to {0}".format(user))
+
 
 def set_priority(issue, Lbug):
     prio = priority_map[Lbug.importance]
     issue.update(fields={"priority": {'name': prio}})
     logger.info('Importance was change to {0}'.format(prio))
+
 
 def update_labels(issue, Lbug):
     labels = []
@@ -155,35 +164,30 @@ def update_labels(issue, Lbug):
             issue.fields.labels.append(label)
         issue.update(fields={"labels": issue.fields.labels})
 
+
 def change_issue_status(issue, new_status):
     logger.info('Changing status from "{0}" to "{1}"'.format(issue.fields.status, new_status))
-    is_review = False
-    if str(issue.fields.status) == 'Open' and new_status != 'In Progress':
+    if str(issue.fields.status) == 'To Do' and new_status != 'In Progress':
         issue = transition(issue, transition_map['In Progress'])
-    if str(issue.fields.status) == 'In Progress' and new_status != 'Review':
-        is_review = True
-        issue = transition(issue, transition_map['Review'])
-    if str(issue.fields.status) == 'Review' and new_status != 'Bug Verification':
-        issue = transition(issue, transition_map['Bug Verification'])
-    if str(issue.fields.status) in ['Bug Verification', 'Blocked'] and new_status != 'Done':
-        issue = transition(issue, transition_map['Open'])
+    if str(issue.fields.status) == 'In Progress' and new_status != 'In QA':
+        issue = transition(issue, transition_map['In QA'])
     issue = transition(issue, transition_map[new_status])
-
-    if is_review is True or new_status == 'Review':
-        # If bug was moved to Review state necessary to reassign bug from developer to qa
+    if new_status == 'In QA':
+        # If bug was moved to Fix Committed state necessary to reassign bug from developer to qa
         jira.assign_issue(issue, None)
         logger.warning("Issue was unassigned from {0}".format(issue.fields.assignee))
 
+
 def transition(issue, transit_status):
     transitions = jira.transitions(issue)
-    is_success=False
+    is_success = False
     for t in transitions:
         if t['name']==transit_status:
             logger.info('status was changed "{0}" -> "{1}"'.format(issue.fields.status, transit_status))
             jira.transition_issue(issue, t['id'])
-            is_success=True
+            is_success = True
             break
-    if is_success == False:
+    if not is_success:
         logger.error("Can't change status '{0}' -> '{1}'".format(issue.fields.status, transit_status))
     return jira.issue(issue.id)
 
@@ -211,6 +215,6 @@ for Lbug in lp_bugs:
         newJbug = jira.create_issue(project=jira_project, summary=summary, description=Lbug.web_link,
                                     labels=['launchpad'], issuetype={'name': 'Bug'})
         logger.info("Jira issue {0} ({1}) was successfully added".format(newJbug.key, newJbug.fields.summary.encode('utf-8')))
-        issue_dict = {"fixVersions": [{"name": "team"}]}
+        issue_dict = {"fixVersions": [{"name": fix_version}]}
         newJbug.update(fields=issue_dict)
         sync_jira_status(newJbug, Lbug)
