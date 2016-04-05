@@ -1,6 +1,7 @@
 import os
 import logging
 import itertools
+import json
 from jira import JIRA
 from launchpadlib.launchpad import Launchpad
 
@@ -18,35 +19,33 @@ console.setFormatter(formatter)
 logger = logging.getLogger(__name__)
 logger.addHandler(console)
 
-server = os.getenv('JIRA_URL')
-user = os.getenv('JIRA_USER')
-password = os.getenv('JIRA_PASSWORD')
+jira_url = os.getenv('JIRA_URL')
+jira_user = os.getenv('JIRA_USER')
+jira_pwd = os.getenv('JIRA_PASSWORD')
 jira_project = os.getenv('JIRA_PROJECT')
-fix_version = os.getenv('JIRA_FIX_VERSION')
 
-team_name = os.getenv('LAUNCHPAD_TEAM')
-milestone = os.getenv('LAUNCHPAD_MILESTONE', [None])
+lp_team = os.getenv('LAUNCHPAD_TEAM')
+milestones = json.loads(os.getenv('LAUNCHPAD_MILESTONE', [None]))
+lp_project = os.getenv('LAUNCHPAD_PROJECT')
 tags = os.getenv('LAUNCHPAD_TAGS', None)
-if not isinstance(milestone, list):
-    milestone = milestone.split(',')
 
 cachedir = "~/.launchpadlib/cache/"
-launchpad = Launchpad.login_anonymously('just testing', 'production', cachedir)
-team = launchpad.people(team_name).members_details
+lp_api = 'devel'
+launchpad = Launchpad.login_anonymously('just testing', 'production', cachedir, version=lp_api)
 
 lp_jira_map = {'New': 'To Do',
-               'Triaged': 'In Progress',
+               'Triaged': 'To Do',
                'Confirmed': 'In Progress',
                'In Progress': 'In Progress',
                'Fix Committed': 'In QA',
-               'Fix Released': 'Closed',
-               'Invalid': 'Closed',
-               "Won't Fix": 'Closed'}
+               'Fix Released': 'Done',
+               'Invalid': 'Done',
+               "Won't Fix": 'Done'}
 
 transition_map = {'To Do': 'Stop Progress',
                   'In Progress': 'Start Bugfixing',
                   'In QA': 'Start Verification',
-                  'Closed': 'Close'}
+                  'Done': 'Done'}
 
 priority_map = {'Critical': 'Critical',
                 'High': 'Major',
@@ -55,16 +54,18 @@ priority_map = {'Critical': 'Critical',
                 'Wishlist': 'Some day',
                 'Undecided': 'Some day'}
 
-user_map = {'popovych-andrey':'apopovych'}
+user_map = {'popovych-andrey': 'apopovych',
+            'slavchick': 'vtabolin'}
 
 
 def get_jira_bugs(jira_instance, project):
     issues_count = 1000000,
     issues_fields = 'key,summary,description,issuetype,priority,labels',\
                   'status,updated,comment,fixVersions'
-    filter = 'project={0} and issuetype=Bug and fixVersion="{1}"'.format(project, fix_version)
-    tasks = jira_instance.search_issues(filter, fields=issues_fields,
-                                maxResults=issues_count)
+    query = 'project={0} and issuetype=Bug and ' \
+            'resolution=Unresolved'.format(project)
+    tasks = jira_instance.search_issues(query, fields=issues_fields,
+                                        maxResults=issues_count)
     return tasks
 
 
@@ -90,20 +91,22 @@ def return_indirect_members(team, teams=[], peoples=[]):
     return teams, peoples
 
 
-def search_lp_tasks(lp_list):
+def search_lp_tasks(lp_users):
     bugs = []
-    logger.info('Filter: milestone "{0}", tags "{1}"'.format(milestone, tags))
-    for user, m in itertools.product(lp_list, milestone):
-        list_of_bugs = user.searchTasks(assignee=user, status=lp_jira_map.keys(), milestone=m.strip(), tags=tags)
+    logger.info('Search bugs using filter with milestones "{0}"'.format(
+        milestones.keys(), tags))
+    for user, m in itertools.product(lp_users, milestones.keys()):
+        milestone = launchpad.projects[lp_project].getMilestone(name=m)
+        list_of_bugs = milestone.searchTasks(assignee=user,
+                                             status=lp_jira_map.keys(),
+                                             tags=tags, omit_duplicates=False)
         for bug in list_of_bugs:
             bugs.append(bug)
     return bugs
 
 
 def get_launchpad_bugs():
-    cachedir = "~/.launchpadlib/cache/"
-    launchpad = Launchpad.login_anonymously('just testing', 'production', cachedir)
-    team = launchpad.people(team_name)
+    team = launchpad.people(lp_team)
     bugs = []
     logger.info('Team members:')
     teams, peoples = return_indirect_members(team)
@@ -115,14 +118,18 @@ def get_launchpad_bugs():
 
 def sync_jira_status(issue, Lbug):
     logger.info('=== Start to sync {0} with launchpad ==='.format(issue.key))
-    lp_status = Lbug.status
+    if Lbug.bug.duplicate_of:
+        lp_status = "Won't Fix"
+    else:
+        lp_status = Lbug.status
     set_priority(issue, Lbug)
     update_labels(issue, Lbug)
     if lp_jira_map[lp_status] in ['To Do', 'In Progress']:
         assign_bug(issue, Lbug)
     if str(issue.fields.status) in lp_jira_map[lp_status]:
         logger.info('{0} in actual state.'.format(issue.key))
-        logger.info('Jira status: {0}, Launchpad status: {1}'.format(issue.fields.status, lp_status))
+        logger.info('Jira status: {0}, Launchpad status: {1}'.format(
+            issue.fields.status, lp_status))
         return True
     else:
         new_status = lp_jira_map[lp_status]
@@ -133,7 +140,7 @@ def sync_jira_status(issue, Lbug):
 def assign_bug(issue, Lbug):
     # Assign bug to developer
     person_link = Lbug.bug.bug_tasks.entries[0]['assignee_link']
-    lp_user = person_link.replace('https://api.launchpad.net/1.0/~', '')
+    lp_user = person_link.replace('https://api.launchpad.net/'+lp_api+'/~', '')
     try:
         user = user_map[lp_user]
     except:
@@ -166,16 +173,19 @@ def update_labels(issue, Lbug):
 
 
 def change_issue_status(issue, new_status):
-    logger.info('Changing status from "{0}" to "{1}"'.format(issue.fields.status, new_status))
+    logger.info('Changing status from "{0}" to "{1}"'.format(
+        issue.fields.status, new_status))
     if str(issue.fields.status) == 'To Do' and new_status != 'In Progress':
         issue = transition(issue, transition_map['In Progress'])
     if str(issue.fields.status) == 'In Progress' and new_status != 'In QA':
         issue = transition(issue, transition_map['In QA'])
     issue = transition(issue, transition_map[new_status])
     if new_status == 'In QA':
-        # If bug was moved to Fix Committed state necessary to reassign bug from developer to qa
+        # If bug was moved to Fix Committed state necessary to
+        # reassign bug from developer to qa
         jira.assign_issue(issue, None)
-        logger.warning("Issue was unassigned from {0}".format(issue.fields.assignee))
+        logger.warning("Issue was unassigned from {0}".format(
+            issue.fields.assignee))
 
 
 def transition(issue, transit_status):
@@ -183,18 +193,20 @@ def transition(issue, transit_status):
     is_success = False
     for t in transitions:
         if t['name']==transit_status:
-            logger.info('status was changed "{0}" -> "{1}"'.format(issue.fields.status, transit_status))
+            logger.info('status was changed "{0}" -> "{1}"'.format(
+                issue.fields.status, transit_status))
             jira.transition_issue(issue, t['id'])
             is_success = True
             break
     if not is_success:
-        logger.error("Can't change status '{0}' -> '{1}'".format(issue.fields.status, transit_status))
+        logger.error("Can't change status '{0}' -> '{1}'".format(
+            issue.fields.status, transit_status))
     return jira.issue(issue.id)
 
 logger.info("==============================================")
 logger.info("========== SYNC LAUNCHPAD WITH JIRA ==========")
 logger.info("==============================================")
-jira = JIRA(basic_auth=(user, password), options={'server': server})
+jira = JIRA(basic_auth=(jira_user, jira_pwd), options={'server': jira_url})
 Jbugs = get_jira_bugs(jira, jira_project)
 lp_bugs = get_launchpad_bugs()
 
@@ -202,19 +214,29 @@ logger.info("{0} Jira bugs were found".format(len(Jbugs)))
 logger.info("{0} Launchpad bugs were found".format(len(lp_bugs)))
 
 for Lbug in lp_bugs:
-    logger.info("Launchpad bug {0} ({1})".format(Lbug.bug.id, Lbug.title.encode('utf-8')))
+    m = str(Lbug.milestone).replace('https://api.launchpad.net/'+ lp_api + '/'
+                                    + lp_project + '/+milestone/', '')
+    logger.info("{0} milestone: {1}".format(Lbug.title.encode('utf-8'), m))
     it_created = False
     for Jbug in Jbugs:
         if str(Lbug.bug.id) in Jbug.fields.summary:
-            logger.info("Matched to Jira issue {0} ({1})".format(Jbug.key, Jbug.fields.summary.encode('utf-8')))
-            it_created = True
-            sync_jira_status(Jbug, Lbug)
-            break
-    if not it_created and Lbug.status not in ["Won't Fix", 'Invalid', 'Fix Released']:
+            for ver in Jbug.fields.fixVersions:
+                if milestones[m] in ver.name:
+                    logger.info("Matched to Jira issue {0} ({1})".format(
+                        Jbug.key, Jbug.fields.summary.encode('utf-8')))
+                    it_created = True
+                    sync_jira_status(Jbug, Lbug)
+                    break
+    if not it_created and not Lbug.bug.duplicate_of and Lbug.status not in \
+            ["Won't Fix", 'Invalid', 'Fix Released']:
         summary = Lbug.title
-        newJbug = jira.create_issue(project=jira_project, summary=summary, description=Lbug.web_link,
-                                    labels=['launchpad'], issuetype={'name': 'Bug'})
-        logger.info("Jira issue {0} ({1}) was successfully added".format(newJbug.key, newJbug.fields.summary.encode('utf-8')))
-        issue_dict = {"fixVersions": [{"name": fix_version}]}
+        newJbug = jira.create_issue(project=jira_project,
+                                    summary=summary,
+                                    description=Lbug.web_link,
+                                    labels=['launchpad'],
+                                    issuetype={'name': 'Bug'})
+        logger.info("Jira issue {0} ({1}) was successfully added".format(
+            newJbug.key, newJbug.fields.summary.encode('utf-8')))
+        issue_dict = {"fixVersions": [{"name": milestones[m]}]}
         newJbug.update(fields=issue_dict)
         sync_jira_status(newJbug, Lbug)
