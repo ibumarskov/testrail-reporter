@@ -8,8 +8,7 @@ from launchpadlib.launchpad import Launchpad
 LOGS_DIR = os.environ.get('LOGS_DIR', os.getcwd())
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s: %(message)s',
-                    filename=os.path.join(LOGS_DIR, 'log/sync_jira.log'),
-                    filemode='w')
+                    filename=os.path.join(LOGS_DIR, 'log/sync_jira.log'))
 
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
@@ -31,7 +30,8 @@ tags = os.getenv('LAUNCHPAD_TAGS', None)
 
 cachedir = "~/.launchpadlib/cache/"
 lp_api = 'devel'
-launchpad = Launchpad.login_anonymously('just testing', 'production', cachedir, version=lp_api)
+launchpad = Launchpad.login_anonymously('just testing', 'production',
+                                        cachedir, version=lp_api)
 
 lp_jira_map = {'New': 'To Do',
                'Triaged': 'To Do',
@@ -60,8 +60,8 @@ user_map = {'popovych-andrey': 'apopovych',
 
 def get_jira_bugs(jira_instance, project):
     issues_count = 1000000,
-    issues_fields = 'key,summary,description,issuetype,priority,labels',\
-                  'status,updated,comment,fixVersions'
+    issues_fields = 'key, summary, description, issuetype, priority, ' \
+                    'labels, status, updated, comment, fixVersions'
     query = 'project={0} and issuetype=Bug and ' \
             'resolution=Unresolved'.format(project)
     tasks = jira_instance.search_issues(query, fields=issues_fields,
@@ -192,7 +192,7 @@ def transition(issue, transit_status):
     transitions = jira.transitions(issue)
     is_success = False
     for t in transitions:
-        if t['name']==transit_status:
+        if t['name'] == transit_status:
             logger.info('status was changed "{0}" -> "{1}"'.format(
                 issue.fields.status, transit_status))
             jira.transition_issue(issue, t['id'])
@@ -214,8 +214,8 @@ logger.info("{0} Jira bugs were found".format(len(Jbugs)))
 logger.info("{0} Launchpad bugs were found".format(len(lp_bugs)))
 
 for Lbug in lp_bugs:
-    m = str(Lbug.milestone).replace('https://api.launchpad.net/'+ lp_api + '/'
-                                    + lp_project + '/+milestone/', '')
+    m = str(Lbug.milestone).replace('https://api.launchpad.net/' + lp_api +
+                                    '/' + lp_project + '/+milestone/', '')
     logger.info("{0} milestone: {1}".format(Lbug.title.encode('utf-8'), m))
     it_created = False
     for Jbug in Jbugs:
