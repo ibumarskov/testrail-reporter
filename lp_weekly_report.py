@@ -12,7 +12,9 @@ tags = os.getenv('LAUNCHPAD_TAGS', None)
 one_week_ago_date = datetime.datetime.now() - datetime.timedelta(weeks=1)
 
 cachedir = "~/.launchpadlib/cache/"
-launchpad = Launchpad.login_anonymously('just testing', 'production', cachedir)
+lp_api = 'devel'
+launchpad = Launchpad.login_anonymously('just testing', 'production', cachedir,
+                                        version=lp_api)
 lp_team = launchpad.people(team_name).members_details
 lp_project = launchpad.projects(project)
 
