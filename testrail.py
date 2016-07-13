@@ -143,3 +143,29 @@ class TestRailProject():
                 cases_uri, section_id=section_id
             )
         return self.client.send_get(cases_uri)
+
+    def add_case(self, section_id, case):
+        add_case_uri = 'add_case/{0}'.format(section_id)
+        return self.client.send_post(add_case_uri, case)
+
+    def update_case(self, case_id, fields):
+        return self.client.send_post('update_case/{0}'.format(case_id), fields)
+
+    def delete_case(self, case_id):
+        return self.client.send_post('delete_case/' + str(case_id), None)
+
+    def create_section(self, suite_id, name, parent_id=None):
+        return self.client.send_post('add_section/' + str(self.project['id']),
+                                     dict(suite_id=suite_id, name=name,
+                                          parent_id=parent_id))
+
+    def delete_section(self, section_id):
+        return self.client.send_post('delete_section/' + str(section_id), {})
+
+    def get_case_fields(self, suite_id):
+        section_uri = 'get_case_fields&suite_id={0}'.format(suite_id)
+        return self.client.send_get(section_uri)
+
+    def get_milestones(self):
+        milestone_uri = 'get_milestones/{}'.format(self.project['id'])
+        return self.client.send_get(milestone_uri)
