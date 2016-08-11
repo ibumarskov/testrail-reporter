@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import rst
 from optparse import OptionParser
@@ -10,7 +12,6 @@ password = os.environ.get('TESTRAIL_PASSWORD')
 def main():
     parser = OptionParser(
         description="Generate Test Plan from TestRail in RST."
-                    "See settings.py for configuration."
     )
     parser.add_option('-p', '--project_name', dest='project_name', default=None,
                       help='Name of Test Suite in TestRail')
@@ -23,6 +24,9 @@ def main():
                       help='Set path for generated documents.')
 
     (options, args) = parser.parse_args()
+
+    if len(args) != 1:
+        parser.error("type -h for help")
 
     project_name = options.project_name
     project = TestRailProject(url=url,

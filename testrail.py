@@ -16,7 +16,7 @@ import urllib2
 
 
 class APIClient:
-    def __init__(self, base_url):
+    def __init__(self, base_url=''):
         self.user = ''
         self.password = ''
         if not base_url.endswith('/'):
@@ -90,6 +90,8 @@ class APIError(Exception):
 
 class TestRailProject():
     def __init__(self, url, user, password, project):
+        if not url:
+            url = 'http://'
         self.client = APIClient(base_url=url)
         self.client.user = user
         self.client.password = password
