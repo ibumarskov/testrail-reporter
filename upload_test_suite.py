@@ -126,6 +126,8 @@ def parse_arguments():
 def main():
     options = parse_arguments()
 
+    logger.info('URL: "{0}"'.format(url))
+    logger.info('User: "{0}"'.format(user))
     logger.info('Test plan path: "{0}"'.format(options.path))
     logger.info('Testrail project name: "{0}"'.format(options.project_name))
     logger.info('Testrail suite name: "{0}"'.format(options.suite_name))
@@ -193,6 +195,8 @@ def main():
                 project.create_section(suite_id, section_name)
                 testrail_section = project.get_section_by_name(suite_id,
                                                                section_name)
+            else:
+                continue
 
         testrail_tests = project.get_cases(suite_id, testrail_section['id'])
         rst_tests_titles = [x['Title'] for x in rst_section['Tests']]
@@ -222,7 +226,6 @@ def main():
 
             test_case_to_upload = {
                 "title": test_title,
-                "type_id": 1,
                 "milestone_id": milestone,
                 "custom_qa_team": pce_team_id
             }
@@ -311,7 +314,7 @@ def main():
                         logger.warning('Description for step {0} will be '
                                        'changed'.format(i+1))
                         logger.debug(
-                            "\nOld description: {0}\nNew description: "
+                            "\nOld description: \n{0}\nNew description: \n"
                             "{1}".format(step['content'], cur_step['content'])
                         )
                     if is_new or cur_step['expected'] != step['expected']:
@@ -323,7 +326,7 @@ def main():
                         logger.warning('Expected result for step {0} will be '
                                        'changed'.format(i+1))
                         logger.debug(
-                            "\nOld expected: {0}\nNew expected: {1}"
+                            "\nOld expected: \n{0}\nNew expected: \n{1}"
                             "".format(step['expected'], cur_step['expected'])
                         )
 

@@ -1,2 +1,5 @@
 launchpadlib
 jira
+prettytable
+simplejson
+rst
