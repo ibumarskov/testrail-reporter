@@ -1,10 +1,12 @@
+import logging
 import os
 import re
-import logging
-from docutils.core import publish_doctree
 from optparse import OptionParser
-from testrail import *
 
+from docutils.core import publish_doctree
+
+from lib.testrail import APIError
+from lib.testrailproject import TestRailProject
 
 LOGS_DIR = os.environ.get('LOGS_DIR', os.getcwd())
 logging.basicConfig(
@@ -145,7 +147,7 @@ def main():
     project = TestRailProject(url=url,
                               user=user,
                               password=password,
-                              project=options.project_name)
+                              project_name=options.project_name)
 
     suite_id = project.get_suite_by_name(options.suite_name)['id']
 
@@ -192,7 +194,7 @@ def main():
 
             if not options.dry:
                 logger.warning("NOT DRY RUN !")
-                project.create_section(suite_id, section_name)
+                project.add_section_project(dict(suite_id, section_name))
                 testrail_section = project.get_section_by_name(suite_id,
                                                                section_name)
             else:

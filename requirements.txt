@@ -1,5 +1,6 @@
-launchpadlib
+docutils
 jira
+launchpadlib
 prettytable
-simplejson
 rst
+simplejson

@@ -1,7 +1,8 @@
 import os
 import rst
 from optparse import OptionParser
-from testrail import *
+
+from lib.testrailproject import TestRailProject
 
 url = os.environ.get('TESTRAIL_URL')
 user = os.environ.get('TESTRAIL_USER')
@@ -28,7 +29,7 @@ def main():
     project = TestRailProject(url=url,
                               user=user,
                               password=password,
-                              project=project_name)
+                              project_name=project_name)
 
     suite_name = options.suite_name
     exclude_sections = options.exclude_sections
