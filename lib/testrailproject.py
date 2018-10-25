@@ -17,7 +17,7 @@ class TestRailProject(TestRailAPICalls):
     def _fuse():
         print "DO NOT TRY TO DO IT !!!"
 
-    def get_cases_project(self, suite_id, section_id=None):
+    def get_cases_project(self, suite_id=None, section_id=None):
         return super(TestRailProject, self).get_cases(self.project['id'],
                                                       suite_id,
                                                       section_id)
@@ -84,6 +84,7 @@ class TestRailProject(TestRailAPICalls):
         for suite in self.get_suites_project():
             if suite['name'] == name:
                 return self.get_suite(suite_id=suite['id'])
+        raise Exception("Suite {} not found".format(name))
 
     def get_section_by_name(self, suite_id, section_name):
         for section in self.get_sections_project(suite_id=suite_id):

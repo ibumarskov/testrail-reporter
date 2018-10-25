@@ -100,11 +100,12 @@ class TestRailAPICalls(object):
         uri = 'get_case/{case_id}'.format(case_id=case_id)
         return self.client.send_get(uri)
 
-    def get_cases(self, project_id, suite_id, section_id):
-        uri = 'get_cases/{project_id}&suite_id={suite_id}' \
-              '&section_id={section_id}'.format(project_id=project_id,
-                                                suite_id=suite_id,
-                                                section_id=section_id)
+    def get_cases(self, project_id, suite_id=None, section_id=None):
+        uri = 'get_cases/{project_id}'.format(project_id=project_id)
+        if suite_id:
+            uri += '&suite_id={suite_id}'.format(suite_id=suite_id)
+        if section_id:
+            uri += '&section_id={section_id}'.format(section_id=section_id)
         return self.client.send_get(uri)
 
     def add_case(self, section_id, data):
@@ -262,20 +263,20 @@ class TestRailAPICalls(object):
 
     # API: Results
 
-    def get_results(self, test_id, filter):
+    def get_results(self, test_id, filter=None):
         uri = 'get_results/{test_id}'.format(test_id=test_id)
         if filter is not None:
             uri += '{}'.format(filter)
         return self.client.send_get(uri)
 
-    def get_results_for_case(self, run_id, case_id, filter):
+    def get_results_for_case(self, run_id, case_id, filter=None):
         uri = 'get_results_for_case/{run_id}/{case_id}'.format(run_id=run_id,
                                                                case_id=case_id)
         if filter is not None:
             uri += '{}'.format(filter)
         return self.client.send_get(uri)
 
-    def get_results_for_run(self, run_id, filter):
+    def get_results_for_run(self, run_id, filter=None):
         uri = 'get_results_for_run/{run_id}'.format(run_id=run_id)
         if filter is not None:
             uri += '{}'.format(filter)
@@ -310,7 +311,7 @@ class TestRailAPICalls(object):
         uri = 'get_run/{run_id}'.format(run_id=run_id)
         return self.client.send_get(uri)
 
-    def get_runs(self, project_id, filter):
+    def get_runs(self, project_id, filter=None):
         uri = 'get_runs/{project_id}'.format(project_id=project_id)
         if filter is not None:
             uri += '{}'.format(filter)
@@ -338,9 +339,9 @@ class TestRailAPICalls(object):
         uri = 'get_section/{section_id}'.format(section_id=section_id)
         return self.client.send_get(uri)
 
-    def get_sections(self, project_id, section_id):
+    def get_sections(self, project_id, suite_id):
         uri = 'get_sections/{project_id}&suite_id={suite_id}'.format(
-            project_id=project_id, section_id=section_id)
+            project_id=project_id, suite_id=suite_id)
         return self.client.send_get(uri)
 
     def add_section(self, project_id, data):
@@ -395,7 +396,7 @@ class TestRailAPICalls(object):
         uri = 'get_test/{test_id}'.format(test_id=test_id)
         return self.client.send_get(uri)
 
-    def get_tests(self, run_id, filter):
+    def get_tests(self, run_id, filter=None):
         uri = 'get_tests/{run_id}'.format(run_id=run_id)
         if filter is not None:
             uri += '{}'.format(filter)
