@@ -31,9 +31,12 @@ def parse_arguments():
                       help='Testrail suite name.')
     parser.add_argument('-m', dest='milestone', default=None,
                       help='Testrail milestone.')
-    parser.add_argument('-d', action="store_true", dest='dry', default=False,
-                      help='Dry run mode. Only show what would be changed and'
-                           ' do nothing.')
+    parser.add_argument('-t', dest='test_plan_name',
+                        help='Testrail Test Plan name')
+    parser.add_argument('-r', dest='test_run', default=None,
+                        help='Testrail Test Run name.')
+    parser.add_argument('-u', dest='update_ts', action="store_true", default=False,
+                        help='Update Test Suite')
 
     return parser.parse_args()
 
@@ -49,6 +52,7 @@ def main():
     logger.info('Tempest report file: "{0}"'.format(args.report_path))
     logger.info('Testrail project name: "{0}"'.format(args.project_name))
     logger.info('Testrail suite name: "{0}"'.format(args.suite_name))
+    logger.info('Testrail Test Plan: "{0}"'.format(args.test_plan_name))
     logger.info('Milestone: "{0}"'.format(args.milestone))
 
     report_obj = TempestXMLParser(args.report_path)
@@ -57,10 +61,9 @@ def main():
                               password=password,
                               project_name=args.project_name)
     reporter_obj = TestRailReporter(project, report_obj)
-    reporter_obj.update_test_suite(args.suite_name)
-    # reporter_obj.report_test_plan('[MCP-Q3] Contrail 4.0 2018.10.12',
-    #                               'Tempest 18.0.0', 'Tempest smoke',
-    #                               update_existing=True)
+    if args.update_ts:
+        reporter_obj.update_test_suite(args.suite_name)
+    reporter_obj.report_test_plan(args.test_plan_name, args.suite_name, args.test_run, update_existing=True)
 
 if __name__ == "__main__":
     main()

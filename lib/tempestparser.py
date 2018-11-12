@@ -13,7 +13,7 @@ class TempestXMLParser(ReportParser):
         self.report_list = []
 
         for child in root:
-            if child.tag != 'testcase':
+            if child.tag != 'testcase' or not child.attrib['classname']:
                 continue
             tc = self.parse_tc_attr(child.attrib)
             section = self.choose_section_by_test_name(tc['title'])
