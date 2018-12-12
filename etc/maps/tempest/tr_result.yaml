@@ -1,0 +1,15 @@
+title:
+  - 'classname'
+  - 'name'
+status:
+  default: 'passed'
+  element:
+    failed: 'failed'
+    skipped: 'skipped'
+comment:
+  element:
+    failed:
+      - text
+      - attrs:
+        - 'type'
+    skipped:

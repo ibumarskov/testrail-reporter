@@ -1,25 +1,39 @@
-import itertools
-
 from lib.testrailproject import TestRailProject
 from lib.tempestparser import ReportParser
 
+import yaml
 
-class TestRailReporter():
 
+class TestRailReporter:
     complexity_map = {
         'smoke': 1,
         'core': 2,
         'advanced': 3
     }
 
-    def __init__(self, project, report_obj):
+    def __init__(self, project, report_obj,
+                 attr2id_map='etc/attrs2id.yaml'):
         isinstance(project, TestRailProject)
         isinstance(report_obj, ReportParser)
         # self.project = TestRailProject()
         self.project = project
         self.suite_list = report_obj.suite_list
-        self.report_list = report_obj.report_list
-        self.results_list = None
+        self.result_list = report_obj.result_list
+        self.case_types = project.get_case_types()
+        self.case_fields = project.get_case_fields()
+        self.milestones = project.get_milestones_project()
+        with open(attr2id_map, 'r') as stream:
+            self.attr2id_map = yaml.load(stream)
+
+    def convert_casetype2id(self, test_case):
+        for i in self.case_types:
+            if test_case['type_id'] == i['name']:
+                test_case['type_id'] = i['id']
+
+    def convert_milestone2id(self, test_case):
+        for i in self.milestones:
+            if test_case['milestone_id'] == i['name']:
+                test_case['milestone_id'] = i['id']
 
     def update_test_suite(self, suite_name):
         # Check suite name and create if needed:
@@ -29,10 +43,9 @@ class TestRailReporter():
             suite_id = self.project.add_suite_project(suite_name)
 
         tr_sections = self.project.get_sections_project(suite_id)
-        milestones = self.project.get_milestones_project()
 
         for section in self.suite_list:
-            # TO DO - fix but with tests without section
+            # TO DO - fix tests without section
             tr_section = None
             for tr_s in tr_sections:
                 if tr_s['name'] == section['section_name']:
@@ -47,16 +60,18 @@ class TestRailReporter():
             tr_tests = self.project.get_cases_project(suite_id,
                                                       tr_section['id'])
 
-            titles_list =[]
+            titles_list = []
             for tr_t in tr_tests:
                 titles_list.append(tr_t['title'])
 
             for testcase in section['test_cases']:
                 if testcase['title'] not in titles_list:
+                    self.convert_casetype2id(testcase)
+                    self.convert_milestone2id(testcase)
                     self.project.add_case(tr_section['id'], testcase)
 
     def report_test_plan(self, plan_name, suite_name, run_name,
-                         suite_config=None, update_existing=False):
+                         update_existing=False):
         suite = self.project.get_suite_by_name(suite_name)
         plans_list = self.project.get_plans_project()
         plan = None
@@ -87,7 +102,7 @@ class TestRailReporter():
         run = self.project.get_run(plan_entry['runs'][0]['id'])
         test_results = self.project.get_tests(run['id'])
         results = {'results': []}
-        for r in self.report_list:
+        for r in self.result_list:
             result = self.parse_report_attr(r, test_results)
             results['results'].append(result)
 

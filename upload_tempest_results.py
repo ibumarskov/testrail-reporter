@@ -21,8 +21,10 @@ console.setFormatter(formatter)
 logger = logging.getLogger(__name__)
 logger.addHandler(console)
 
+
 def parse_arguments():
-    parser = argparse.ArgumentParser(description='Upload tests cases to TestRail.')
+    parser = argparse.ArgumentParser(description='Upload tests cases to '
+                                                 'TestRail.')
     parser.add_argument('report_path', metavar='Tempest report', type=str,
                         help='Path to tempest report (.xml)')
     parser.add_argument('-p', dest='project_name', default=None,
@@ -35,10 +37,26 @@ def parse_arguments():
                         help='Testrail Test Plan name')
     parser.add_argument('-r', dest='test_run', default=None,
                         help='Testrail Test Run name.')
-    parser.add_argument('-u', dest='update_ts', action="store_true", default=False,
+    parser.add_argument('-u', dest='update_ts', action="store_true",
+                        default=False,
                         help='Update Test Suite')
-
+    parser.add_argument('--case-attrs', dest='tr_case_attrs',
+                        default='etc/tr_case_attrs.yaml',
+                        help='Custom case attributes')
+    parser.add_argument('--result-attrs', dest='tr_result_attrs',
+                        default='etc/tr_result_attrs.yaml',
+                        help='Custom result attributes')
+    parser.add_argument('--case-map', dest='tr_case_map',
+                        default='etc/maps/tempest/tr_case.yaml',
+                        help='Custom case map')
+    parser.add_argument('--result-map', dest='tr_result_map',
+                        default='etc/maps/tempest/tr_result.yaml',
+                        help='Custom result map')
+    parser.add_argument('--sections-map', dest='sections_map',
+                        default='etc/maps/tempest/sections.yaml',
+                        help='Custom section map')
     return parser.parse_args()
+
 
 def main():
     args = parse_arguments()
@@ -55,7 +73,12 @@ def main():
     logger.info('Testrail Test Plan: "{0}"'.format(args.test_plan_name))
     logger.info('Milestone: "{0}"'.format(args.milestone))
 
-    report_obj = TempestXMLParser(args.report_path)
+    report_obj = TempestXMLParser(args.report_path,
+                                  tr_case_attrs=args.tr_case_attrs,
+                                  tr_result_attrs=args.tr_result_attrs,
+                                  tr_case_map=args.tr_case_map,
+                                  tr_result_map=args.tr_result_map,
+                                  sections_map=args.sections_map)
     project = TestRailProject(url=url,
                               user=user,
                               password=password,
@@ -63,7 +86,9 @@ def main():
     reporter_obj = TestRailReporter(project, report_obj)
     if args.update_ts:
         reporter_obj.update_test_suite(args.suite_name)
-    reporter_obj.report_test_plan(args.test_plan_name, args.suite_name, args.test_run, update_existing=True)
+    reporter_obj.report_test_plan(args.test_plan_name, args.suite_name,
+                                  args.test_run, update_existing=True)
+
 
 if __name__ == "__main__":
     main()

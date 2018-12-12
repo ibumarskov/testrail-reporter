@@ -2,5 +2,6 @@ docutils
 jira
 launchpadlib
 prettytable
+pyyaml
 rst
 simplejson
