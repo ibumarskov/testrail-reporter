@@ -32,7 +32,7 @@ class TestRailReporter():
         milestones = self.project.get_milestones_project()
 
         for section in self.suite_list:
-            # TO DO - fix but with tests without section
+            # TO DO - fix tests without section
             tr_section = None
             for tr_s in tr_sections:
                 if tr_s['name'] == section['section_name']:
