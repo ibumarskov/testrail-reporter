@@ -1,0 +1,9 @@
+title: ''
+type_id: 'Automated'
+priority_id: ''
+milestone_id: ''
+custom_test_case_description: ''
+custom_test_cases_steps:
+  - content: 'Run test'
+    expected: 'Test passed'
+custom_report_label: ''

@@ -1,0 +1,30 @@
+Glance:
+  - "image."
+Keystone:
+  - "identity."
+Neutron:
+  - "network."
+Nova:
+  - "compute."
+Swift:
+  - "object_storage."
+Scenario:
+  - "tempest.scenario."
+Ironic:
+  - "ironic_tempest_plugin."
+Heat:
+  - "heat_tempest_plugin."
+Telemetry:
+  - "telemetry_tempest_plugin."
+Manila:
+  - "manila_tempest_tests"
+Designate:
+  - "designate_tempest_plugin."
+Barbican:
+  - "barbican_tempest_plugin."
+Horizon:
+  - "tempest_horizon."
+Octavia:
+  - "octavia_tempest_plugin."
+Tungsten:
+  - "tungsten_tempest_plugin."
