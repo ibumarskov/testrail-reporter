@@ -402,6 +402,16 @@ class TestRailAPICalls(object):
             uri += '{}'.format(filter)
         return self.client.send_get(uri)
 
+    @staticmethod
+    def get_tests_filter(status_id=[None]):
+        filter = "&status_id="
+        for i in xrange(len(status_id)):
+            if i == 0:
+                filter = filter + str(status_id[i])
+            else:
+                filter = filter + "," + str(status_id[i])
+        return filter
+
     # API: Users
 
     def get_user(self, user_id):

@@ -102,3 +102,15 @@ class TestRailProject(TestRailAPICalls):
         for sub in milestone['milestones']:
             submilestones.append(sub['name'])
         return submilestones
+
+    def get_plan_by_name(self, name):
+        for plan in self.get_plans_project():
+            if plan['name'] == name:
+                return self.get_plan(plan_id=plan['id'])
+        raise Exception("TestPlan {} not found".format(name))
+
+    def get_run_by_name(self, name):
+        for run in self.get_runs_project():
+            if run['name'] == name:
+                return self.get_run(run_id=run['id'])
+        raise Exception("TestRun {} not found".format(name))
