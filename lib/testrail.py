@@ -177,6 +177,12 @@ class TestRailAPICalls(object):
             uri += '{}'.format(filter)
         return self.client.send_get(uri)
 
+    @staticmethod
+    def get_milestones_filter(is_completed=False, is_started=True):
+        filter = "&is_completed=" + str(int(is_completed))
+        filter = filter + "&is_started=" + str(int(is_started))
+        return filter
+
     def add_milestone(self, project_id, data):
         uri = 'add_milestone/{project_id}'.format(project_id=project_id)
         return self.client.send_post(uri, data)
@@ -401,6 +407,16 @@ class TestRailAPICalls(object):
         if filter is not None:
             uri += '{}'.format(filter)
         return self.client.send_get(uri)
+
+    @staticmethod
+    def get_tests_filter(status_id=[None]):
+        filter = "&status_id="
+        for i in xrange(len(status_id)):
+            if i == 0:
+                filter = filter + str(status_id[i])
+            else:
+                filter = filter + "," + str(status_id[i])
+        return filter
 
     # API: Users
 

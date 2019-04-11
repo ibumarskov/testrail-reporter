@@ -1,0 +1,10 @@
+tests:
+  - title: 'tempest.api.compute.admin.test_servers.ServersAdminTestJSON.test_list_servers_by_admin[id-51717b38-bdc1-458b-b636-1cf82d99f62f]'
+    status: 'ProdFailed'
+    errors:
+      - 'tempest.exceptions.BuildErrorException: Server'
+      - 'Exceeded maximum number of retries. Exhausted all hosts available for retrying build failures for instance'
+    defects: 'PROD-25148'
+
+  - title: 'tempest.api.compute.admin.test_servers.ServersAdminTestJSON.test_create_server_with_scheduling_hint[id-fdcd9b33-0903-4e00-a1f7-b5f6543068d6]'
+    status: 'InfraFailed'
