@@ -1,5 +1,5 @@
 from lib.testrailproject import TestRailProject
-from lib.tempestparser import ReportParser
+from lib.tempestparser import TempestXMLParser
 
 import yaml
 
@@ -14,7 +14,7 @@ class TestRailReporter:
     def __init__(self, project, report_obj,
                  attr2id_map='etc/attrs2id.yaml'):
         isinstance(project, TestRailProject)
-        isinstance(report_obj, ReportParser)
+        isinstance(report_obj, TempestXMLParser)
         # self.project = TestRailProject()
         self.project = project
         self.suite_list = report_obj.suite_list

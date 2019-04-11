@@ -28,11 +28,11 @@ def parse_arguments():
     parser.add_argument('report_path', metavar='Tempest report', type=str,
                         help='Path to tempest report (.xml)')
     parser.add_argument('-p', dest='project_name', default=None,
-                      help='Testrail project name.')
+                        help='Testrail project name.')
     parser.add_argument('-s', dest='suite_name', default=None,
-                      help='Testrail suite name.')
+                        help='Testrail suite name.')
     parser.add_argument('-m', dest='milestone', default=None,
-                      help='Testrail milestone.')
+                        help='Testrail milestone.')
     parser.add_argument('-t', dest='test_plan_name',
                         help='Testrail Test Plan name')
     parser.add_argument('-r', dest='test_run', default=None,

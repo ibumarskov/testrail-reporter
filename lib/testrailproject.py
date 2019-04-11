@@ -5,6 +5,10 @@ class TestRailProject(TestRailAPICalls):
     def __init__(self, url, user, password, project_name, fuse=True):
         super(TestRailProject, self).__init__(url, user, password)
         self.project = self._get_project_by_name(project_name)
+        self.statuses = self.get_statuses()
+        milestone_f = self.get_milestones_filter(is_completed=False,
+                                                 is_started=True)
+        self.milestones = self.get_milestones_project(milestone_f)
         self.fuse = fuse
 
     def _get_project_by_name(self, project_name):
@@ -102,3 +106,21 @@ class TestRailProject(TestRailAPICalls):
         for sub in milestone['milestones']:
             submilestones.append(sub['name'])
         return submilestones
+
+    def get_plan_by_name(self, name):
+        for plan in self.get_plans_project():
+            if plan['name'] == name:
+                return self.get_plan(plan_id=plan['id'])
+        raise Exception("TestPlan {} not found".format(name))
+
+    def get_run_by_name(self, name):
+        for run in self.get_runs_project():
+            if run['name'] == name:
+                return self.get_run(run_id=run['id'])
+        raise Exception("TestRun {} not found".format(name))
+
+    def get_status_by_name(self, name):
+        for status in self.get_statuses():
+            if status['name'] == name:
+                return status['id']
+        raise Exception("Status {} not found".format(name))
