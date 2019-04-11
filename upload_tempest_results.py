@@ -9,17 +9,11 @@ from lib.testrailreporter import TestRailReporter
 LOGS_DIR = os.environ.get('LOGS_DIR', os.getcwd())
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s %(levelname)s: %(message)s',
-    filename=os.path.join(LOGS_DIR, 'log/upload_test_plan.log')
+    format='%(asctime)s %(name)s %(levelname)s: %(message)s',
+    filename=os.path.join(LOGS_DIR, 'log/analyze_results.log'),
 )
-
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
-console.setFormatter(formatter)
-
-logger = logging.getLogger(__name__)
-logger.addHandler(console)
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 
 
 def parse_arguments():
@@ -28,11 +22,11 @@ def parse_arguments():
     parser.add_argument('report_path', metavar='Tempest report', type=str,
                         help='Path to tempest report (.xml)')
     parser.add_argument('-p', dest='project_name', default=None,
-                      help='Testrail project name.')
+                        help='Testrail project name.')
     parser.add_argument('-s', dest='suite_name', default=None,
-                      help='Testrail suite name.')
+                        help='Testrail suite name.')
     parser.add_argument('-m', dest='milestone', default=None,
-                      help='Testrail milestone.')
+                        help='Testrail milestone.')
     parser.add_argument('-t', dest='test_plan_name',
                         help='Testrail Test Plan name')
     parser.add_argument('-r', dest='test_run', default=None,
@@ -65,13 +59,13 @@ def main():
     user = os.environ.get('TESTRAIL_USER')
     password = os.environ.get('TESTRAIL_PASSWORD')
 
-    logger.info('URL: "{0}"'.format(url))
-    logger.info('User: "{0}"'.format(user))
-    logger.info('Tempest report file: "{0}"'.format(args.report_path))
-    logger.info('Testrail project name: "{0}"'.format(args.project_name))
-    logger.info('Testrail suite name: "{0}"'.format(args.suite_name))
-    logger.info('Testrail Test Plan: "{0}"'.format(args.test_plan_name))
-    logger.info('Milestone: "{0}"'.format(args.milestone))
+    LOG.info('URL: "{0}"'.format(url))
+    LOG.info('User: "{0}"'.format(user))
+    LOG.info('Tempest report file: "{0}"'.format(args.report_path))
+    LOG.info('Testrail project name: "{0}"'.format(args.project_name))
+    LOG.info('Testrail suite name: "{0}"'.format(args.suite_name))
+    LOG.info('Testrail Test Plan: "{0}"'.format(args.test_plan_name))
+    LOG.info('Milestone: "{0}"'.format(args.milestone))
 
     report_obj = TempestXMLParser(args.report_path,
                                   tr_case_attrs=args.tr_case_attrs,
