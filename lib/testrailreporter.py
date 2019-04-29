@@ -65,8 +65,8 @@ class TestRailReporter:
 
             for testcase in section['test_cases']:
                 if testcase['title'] not in titles_list:
-                    self.convert_casetype2id(testcase)
-                    self.convert_milestone2id(testcase)
+                    self.project.casetype2id(testcase)
+                    self.project.milestone2id(testcase)
                     self.project.add_case(tr_section['id'], testcase)
 
     def report_test_plan(self, plan_name, suite_name, run_name,

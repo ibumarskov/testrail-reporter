@@ -1,10 +1,17 @@
+from lib.converter import Converter
 from lib.testrail import TestRailAPICalls
 
 
-class TestRailProject(TestRailAPICalls):
+class TestRailProject(TestRailAPICalls, Converter):
     def __init__(self, url, user, password, project_name, fuse=True):
         super(TestRailProject, self).__init__(url, user, password)
         self.project = self._get_project_by_name(project_name)
+        # self.converter = Converter(self.project)
+
+        self.case_types = self.project.get_case_types()
+        self.case_fields = self.project.get_case_fields()
+        self.milestones = self.project.get_milestones_project()
+
         self.statuses = self.get_statuses()
         milestone_f = self.get_milestones_filter(is_completed=False,
                                                  is_started=True)
