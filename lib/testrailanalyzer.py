@@ -30,6 +30,10 @@ class TestRailAnalyzer:
         current_res = test_res[-1]
         if check_obj['errors']:
             for err in check_obj['errors']:
+                if not current_res['comment']:
+                    LOG.warn("Test result for {} doesn't contain any log."
+                             "".format(test["title"]))
+                    return False
                 if err in current_res['comment']:
                     pass
                 else:
