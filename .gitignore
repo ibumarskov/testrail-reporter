@@ -1,1 +1,4 @@
 log/
+tmp/
+.idea/
+*.pyc
