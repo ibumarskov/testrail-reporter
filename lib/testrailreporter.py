@@ -70,7 +70,7 @@ class TestRailReporter:
                     self.project.add_case(tr_section['id'], testcase)
 
     def report_test_plan(self, plan_name, suite_name, run_name,
-                         update_existing=False):
+                         update_existing=False, remove_untested=False):
         suite = self.project.get_suite_by_name(suite_name)
         plans_list = self.project.get_plans_project()
         plan = None
@@ -106,6 +106,16 @@ class TestRailReporter:
             results['results'].append(result)
 
         self.project.add_results(run['id'], results)
+
+        if remove_untested:
+            status_ids = map(lambda a: a['id'], self.project.statuses)
+            status_ids.remove(self.project.get_status_by_label("untested"))
+            tests_filter = self.project.get_tests_filter(status_id=status_ids)
+            tests = self.project.get_tests(run['id'], filter=tests_filter)
+            case_ids = map(lambda a: a['case_id'], tests)
+            data = {'include_all': False,
+                    'case_ids': case_ids}
+            self.project.update_plan_entry(plan['id'], plan_entry['id'], data)
 
     def parse_report_attr(self, report, test_results):
         result = {

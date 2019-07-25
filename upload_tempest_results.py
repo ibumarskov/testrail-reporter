@@ -34,6 +34,9 @@ def parse_arguments():
     parser.add_argument('-u', dest='update_ts', action="store_true",
                         default=False,
                         help='Update Test Suite')
+    parser.add_argument('-c', dest='remove_untested', action="store_true",
+                        default=False,
+                        help='Update Test Suite')
     parser.add_argument('--case-attrs', dest='tr_case_attrs',
                         default='etc/tr_case_attrs.yaml',
                         help='Custom case attributes')
@@ -81,7 +84,8 @@ def main():
     if args.update_ts:
         reporter_obj.update_test_suite(args.suite_name)
     reporter_obj.report_test_plan(args.test_plan_name, args.suite_name,
-                                  args.test_run, update_existing=True)
+                                  args.test_run, update_existing=True,
+                                  remove_untested=args.remove_untested)
 
 
 if __name__ == "__main__":
