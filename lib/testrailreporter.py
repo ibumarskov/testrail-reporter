@@ -1,5 +1,5 @@
 from lib.testrailproject import TestRailProject
-from lib.tempestparser import TempestXMLParser
+from lib.reportparser import ReportParser
 
 import yaml
 
@@ -14,10 +14,11 @@ class TestRailReporter:
     def __init__(self, project, report_obj,
                  attr2id_map='etc/attrs2id.yaml'):
         isinstance(project, TestRailProject)
-        isinstance(report_obj, TempestXMLParser)
+        isinstance(report_obj, ReportParser)
         self.project = project
         self.suite_list = report_obj.suite_list
         self.result_list = report_obj.result_list
+        self.result_list_setUpClass = report_obj.result_list_setUpClass
         self.case_types = project.get_case_types()
         self.case_fields = project.get_case_fields()
         self.milestones = project.get_milestones_project()
@@ -104,18 +105,33 @@ class TestRailReporter:
         for r in self.result_list:
             result = self.parse_report_attr(r, test_results)
             results['results'].append(result)
+        for r in self.result_list_setUpClass:
+            lls = self.match_group2tests(r, test_results)
+            results['results'].extend(lls)
+            pass
 
         self.project.add_results(run['id'], results)
 
         if remove_untested:
-            status_ids = map(lambda a: a['id'], self.project.statuses)
-            status_ids.remove(self.project.get_status_by_label("untested"))
-            tests_filter = self.project.get_tests_filter(status_id=status_ids)
-            tests = self.project.get_tests(run['id'], filter=tests_filter)
-            case_ids = map(lambda a: a['case_id'], tests)
+            untested_tests = self.get_untested_tests(run['id'])
+            case_ids = map(lambda a: a['case_id'], untested_tests)
             data = {'include_all': False,
                     'case_ids': case_ids}
             self.project.update_plan_entry(plan['id'], plan_entry['id'], data)
+
+    def match_group2tests(self, report, test_results):
+        results = []
+        for t in test_results:
+            if report['group'] in t['title']:
+                result = self.parse_report_attr(report, [t])
+                results.append(result)
+        return results
+
+    def get_untested_tests(self, run_id):
+        status_ids = map(lambda a: a['id'], self.project.statuses)
+        status_ids.remove(self.project.get_status_by_label("untested"))
+        tests_filter = self.project.get_tests_filter(status_id=status_ids)
+        return self.project.get_tests(run_id, filter=tests_filter)
 
     def parse_report_attr(self, report, test_results):
         result = {
@@ -146,8 +162,13 @@ class TestRailReporter:
         }
 
         for res in test_results:
+            if 'group' in report.keys():
+                if report['group'] in res['title']:
+                    result['test_id'] = res['id']
+                    break
             if report['title'] == res['title']:
                 result['test_id'] = res['id']
+                break
         if not result['test_id']:
             raise Exception('Can not found test case with name "{}"'
                             ''.format(report['title']))

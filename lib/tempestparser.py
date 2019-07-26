@@ -21,22 +21,33 @@ class TempestXMLParser(ReportParser):
             self.tr_result_map = yaml.load(stream)
         with open(sections_map, 'r') as stream:
             self.sections_map = yaml.load(stream)
-        self.suite_list = []
-        self.result_list = []
+
 
         tree = ET.parse(xmlfile)
         root = tree.getroot()
 
         for child in root:
-            if child.tag != 'testcase' or not child.attrib['classname']:
+            if child.tag != 'testcase':
                 continue
+            tc_res = self.parse_tc_results_attr(child)
+            if 'setUpClass' in tc_res['title']:
+                self.set_test_group(tc_res)
+                self.result_list_setUpClass.append(tc_res)
+                continue
+            else:
+                self.result_list.append(tc_res)
             tc = self.parse_tc_attr(child.attrib)
             section = self.choose_section_by_test_name(tc['title'])
             pos = self.get_section_position(section)
             self.suite_list[pos]['test_cases'].append(tc)
 
-            tc_res = self.parse_tc_results_attr(child)
-            self.result_list.append(tc_res)
+    @staticmethod
+    def set_test_group(tc_res):
+        gr = tc_res['title']
+        remove_str = ['setUpClass', ' ', '(', ')']
+        for s in remove_str:
+            gr = gr.replace(s, '', 1)
+        tc_res['group'] = gr
 
     def get_section_position(self, name):
         for i, suite in enumerate(self.suite_list):
