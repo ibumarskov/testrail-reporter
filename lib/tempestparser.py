@@ -1,9 +1,8 @@
 import copy
-
-from lib.reportparser import ReportParser
-
 import xml.etree.ElementTree as ET
 import yaml
+
+from lib.reportparser import ReportParser
 
 
 class TempestXMLParser(ReportParser):
@@ -16,12 +15,13 @@ class TempestXMLParser(ReportParser):
         super(TempestXMLParser, self).__init__(tr_case_attrs=tr_case_attrs,
                                                tr_result_attrs=tr_result_attrs)
         with open(tr_case_map, 'r') as stream:
-            self.tr_case_map = yaml.load(stream)
+            self.tr_case_map = yaml.safe_load(stream)
         with open(tr_result_map, 'r') as stream:
-            self.tr_result_map = yaml.load(stream)
+            self.tr_result_map = yaml.safe_load(stream)
         with open(sections_map, 'r') as stream:
-            self.sections_map = yaml.load(stream)
-
+            self.sections_map = yaml.safe_load(stream)
+        self.suite_list = []
+        self.result_list = []
 
         tree = ET.parse(xmlfile)
         root = tree.getroot()
