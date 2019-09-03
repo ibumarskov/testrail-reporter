@@ -1,7 +1,7 @@
+import yaml
+
 from lib.testrailproject import TestRailProject
 from lib.reportparser import ReportParser
-
-import yaml
 
 
 class TestRailReporter:
@@ -23,7 +23,7 @@ class TestRailReporter:
         self.case_fields = project.get_case_fields()
         self.milestones = project.get_milestones_project()
         with open(attr2id_map, 'r') as stream:
-            self.attr2id_map = yaml.load(stream)
+            self.attr2id_map = yaml.safe_load(stream)
 
     def convert_casetype2id(self, test_case):
         for i in self.case_types:
