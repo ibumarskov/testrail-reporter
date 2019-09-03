@@ -8,7 +8,6 @@ class ReportParser(object):
             self.tr_case_attrs = yaml.safe_load(stream)
         with open(tr_result_attrs, 'r') as stream:
             self.tr_result_attrs = yaml.safe_load(stream)
-            self.tr_result_attrs = yaml.load(stream)
         self.suite_list = []
         self.result_list = []
         self.result_list_setUpClass = []
