@@ -1,5 +1,5 @@
 #
-# TestRail API binding for Python 2.x (API v2, available since 
+# TestRail API binding for Python 2.x (API v2, available since
 # TestRail 3.0)
 #
 # Learn more:
@@ -73,7 +73,7 @@ class APIClient:
         else:
             result = {}
 
-        if e != None:
+        if e is not None:
             if result and 'error' in result:
                 error = '"' + result['error'] + '"'
             else:
@@ -411,7 +411,7 @@ class TestRailAPICalls(object):
     @staticmethod
     def get_tests_filter(status_id=[None]):
         filter = "&status_id="
-        for i in xrange(len(status_id)):
+        for i in range(len(status_id)):
             if i == 0:
                 filter = filter + str(status_id[i])
             else:

@@ -1,5 +1,16 @@
 log/
 tmp/
-.venv/
-.idea/
 *.pyc
+
+# virtualenv
+.venv/
+
+# Unit test / coverage reports
+.tox/
+
+# PyCharm folder
+.idea/
+
+# Distribution / packaging
+*.egg-info/
+*.egg

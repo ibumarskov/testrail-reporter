@@ -8,7 +8,6 @@ class ReportParser(object):
             self.tr_case_attrs = yaml.safe_load(stream)
         with open(tr_result_attrs, 'r') as stream:
             self.tr_result_attrs = yaml.safe_load(stream)
-            self.tr_result_attrs = yaml.load(stream)
         self.suite_list = []
         self.result_list = []
         self.result_list_setUpClass = []
@@ -22,11 +21,11 @@ class CheckListParser(object):
 
     def _check_structure(self):
         for test in self.attrs['tests']:
-            if not 'title' in test:
+            if 'title' not in test:
                 raise Exception("title not found")
-            if not 'status' in test:
+            if 'status' not in test:
                 raise Exception("status not found")
-            if not 'errors' in test:
+            if 'errors' not in test:
                 test['errors'] = None
-            if not 'defects' in test:
+            if 'defects' not in test:
                 test['defects'] = None

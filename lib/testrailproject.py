@@ -1,4 +1,8 @@
+import logging
+
 from lib.testrail import TestRailAPICalls
+
+LOG = logging.getLogger(__name__)
 
 
 class TestRailProject(TestRailAPICalls):
@@ -20,7 +24,7 @@ class TestRailProject(TestRailAPICalls):
 
     @staticmethod
     def _fuse():
-        print "DO NOT TRY TO DO IT !!!"
+        LOG.warning("DO NOT TRY TO DO IT !!!")
 
     def get_cases_project(self, suite_id=None, section_id=None):
         return super(TestRailProject, self).get_cases(self.project['id'],

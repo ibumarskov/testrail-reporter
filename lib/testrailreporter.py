@@ -1,7 +1,10 @@
+import logging
 import yaml
 
 from lib.testrailproject import TestRailProject
 from lib.reportparser import ReportParser
+
+LOG = logging.getLogger(__name__)
 
 
 class TestRailReporter:
@@ -39,7 +42,7 @@ class TestRailReporter:
         # Check suite name and create if needed:
         try:
             suite_id = self.project.get_suite_by_name(suite_name)['id']
-        except:
+        except Exception:
             suite_id = self.project.add_suite_project(suite_name)
 
         tr_sections = self.project.get_sections_project(suite_id)
@@ -93,8 +96,8 @@ class TestRailReporter:
                                     "".format(run_name,
                                               plan_entry['runs'][0]['url']))
                 else:
-                    print "Test Run {} will be overridden".format(
-                        plan_entry['runs'][0]['url'])
+                    LOG.warning("Test Run {} will be overridden".format(
+                        plan_entry['runs'][0]['url']))
         if not run_present:
             run_data = {'suite_id': suite['id'], 'name': run_name}
             plan_entry = self.project.add_plan_entry(plan['id'], run_data)

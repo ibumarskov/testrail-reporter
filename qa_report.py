@@ -1,6 +1,5 @@
 import argparse
 import logging
-import os
 
 from lib.config import Config
 from lib.reportparser import CheckListParser
@@ -68,51 +67,77 @@ def upload(args):
 
 def main():
     parent = argparse.ArgumentParser(add_help=False)
-    parent.add_argument('-p', dest='project_name', default=None,
-                          help='Testrail project name.')
-    parent.add_argument('-t', dest='test_plan_name',
-                          help='Testrail Test Plan name')
-    parent.add_argument('-r', dest='test_run', default=None,
-                          help='Testrail Test Run name.')
+    parent.add_argument(
+        '-p', dest='project_name', default=None,
+        help='Testrail project name.'
+    )
+    parent.add_argument(
+        '-t', dest='test_plan_name',
+        help='Testrail Test Plan name'
+    )
+    parent.add_argument(
+        '-r', dest='test_run', default=None,
+        help='Testrail Test Run name.'
+    )
 
     parser = argparse.ArgumentParser(prog='qa_report', parents=[parent])
     subparsers = parser.add_subparsers(help='additional help')
 
-    parser_a = subparsers.add_parser('analyze', help='analyze test report '
-                                                     'failures.')
-    parser_a.add_argument('check_list_path', metavar='Check list', type=str,
-                        help='Path to check list (.yml)')
+    parser_a = subparsers.add_parser(
+        'analyze', help='analyze test report failures.')
+    parser_a.add_argument(
+        'check_list_path', metavar='Check list', type=str,
+        help='Path to check list (.yml)'
+    )
     parser_a.set_defaults(func=analyze)
 
-    parser_b = subparsers.add_parser('upload', help='upload test results to '
-                                                    'TestRail.')
-    parser_b.add_argument('report_path', metavar='Tempest report', type=str,
-                        help='Path to tempest report (.xml)')
-    parser_b.add_argument('-s', dest='suite_name', default=None,
-                        help='Testrail suite name.')
-    parser_b.add_argument('-m', dest='milestone', default=None,
-                        help='Testrail milestone.')
-    parser_b.add_argument('-u', dest='update_ts', action="store_true",
-                        default=False,
-                        help='Update Test Suite')
-    parser_b.add_argument('-c', dest='remove_untested', action="store_true",
-                        default=False,
-                        help='Update Test Suite')
-    parser_b.add_argument('--case-attrs', dest='tr_case_attrs',
-                        default='etc/tr_case_attrs.yaml',
-                        help='Custom case attributes')
-    parser_b.add_argument('--result-attrs', dest='tr_result_attrs',
-                        default='etc/tr_result_attrs.yaml',
-                        help='Custom result attributes')
-    parser_b.add_argument('--case-map', dest='tr_case_map',
-                        default='etc/maps/tempest/tr_case.yaml',
-                        help='Custom case map')
-    parser_b.add_argument('--result-map', dest='tr_result_map',
-                        default='etc/maps/tempest/tr_result.yaml',
-                        help='Custom result map')
-    parser_b.add_argument('--sections-map', dest='sections_map',
-                        default='etc/maps/tempest/sections.yaml',
-                        help='Custom section map')
+    parser_b = subparsers.add_parser(
+        'upload', help='upload test results to TestRail.')
+    parser_b.add_argument(
+        'report_path', metavar='Tempest report', type=str,
+        help='Path to tempest report (.xml)'
+    )
+    parser_b.add_argument(
+        '-s', dest='suite_name', default=None,
+        help='Testrail suite name.'
+    )
+    parser_b.add_argument(
+        '-m', dest='milestone', default=None,
+        help='Testrail milestone.'
+    )
+    parser_b.add_argument(
+        '-u', dest='update_ts', action="store_true", default=False,
+        help='Update Test Suite'
+    )
+    parser_b.add_argument(
+        '-c', dest='remove_untested', action="store_true", default=False,
+        help='Update Test Suite'
+    )
+    parser_b.add_argument(
+        '--case-attrs', dest='tr_case_attrs',
+        default='etc/tr_case_attrs.yaml',
+        help='Custom case attributes'
+    )
+    parser_b.add_argument(
+        '--result-attrs', dest='tr_result_attrs',
+        default='etc/tr_result_attrs.yaml',
+        help='Custom result attributes'
+    )
+    parser_b.add_argument(
+        '--case-map', dest='tr_case_map',
+        default='etc/maps/tempest/tr_case.yaml',
+        help='Custom case map'
+    )
+    parser_b.add_argument(
+        '--result-map', dest='tr_result_map',
+        default='etc/maps/tempest/tr_result.yaml',
+        help='Custom result map'
+    )
+    parser_b.add_argument(
+        '--sections-map', dest='sections_map',
+        default='etc/maps/tempest/sections.yaml',
+        help='Custom section map'
+    )
     parser_b.set_defaults(func=upload)
 
     args = parser.parse_args()
