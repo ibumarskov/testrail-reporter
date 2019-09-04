@@ -32,6 +32,9 @@ class TempestXMLParser(ReportParser):
                 self.set_test_group(tc_res)
                 self.result_list_setUpClass.append(tc_res)
                 continue
+            elif 'tearDownClass' in tc_res['title']:
+                # TO DO: add action for failed tearDownClass
+                continue
             else:
                 self.result_list.append(tc_res)
             tc = self.parse_tc_attr(child.attrib)

@@ -66,21 +66,7 @@ def upload(args):
 
 
 def main():
-    parent = argparse.ArgumentParser(add_help=False)
-    parent.add_argument(
-        '-p', dest='project_name', default=None,
-        help='Testrail project name.'
-    )
-    parent.add_argument(
-        '-t', dest='test_plan_name',
-        help='Testrail Test Plan name'
-    )
-    parent.add_argument(
-        '-r', dest='test_run', default=None,
-        help='Testrail Test Run name.'
-    )
-
-    parser = argparse.ArgumentParser(prog='qa_report', parents=[parent])
+    parser = argparse.ArgumentParser(prog='qa_report')
     subparsers = parser.add_subparsers(help='additional help')
 
     parser_a = subparsers.add_parser(
@@ -89,6 +75,18 @@ def main():
         'check_list_path', metavar='Check list', type=str,
         help='Path to check list (.yml)'
     )
+    parser_a.add_argument(
+        '-p', dest='project_name', default=None,
+        help='Testrail project name.'
+    )
+    parser_a.add_argument(
+        '-t', dest='test_plan_name',
+        help='Testrail Test Plan name'
+    )
+    parser_a.add_argument(
+        '-r', dest='test_run', default=None,
+        help='Testrail Test Run name.'
+    )
     parser_a.set_defaults(func=analyze)
 
     parser_b = subparsers.add_parser(
@@ -96,6 +94,18 @@ def main():
     parser_b.add_argument(
         'report_path', metavar='Tempest report', type=str,
         help='Path to tempest report (.xml)'
+    )
+    parser_b.add_argument(
+        '-p', dest='project_name', default=None,
+        help='Testrail project name.'
+    )
+    parser_b.add_argument(
+        '-t', dest='test_plan_name',
+        help='Testrail Test Plan name'
+    )
+    parser_b.add_argument(
+        '-r', dest='test_run', default=None,
+        help='Testrail Test Run name.'
     )
     parser_b.add_argument(
         '-s', dest='suite_name', default=None,
