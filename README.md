@@ -1,3 +1,5 @@
+# Gerrit-CI [![BuildStatus](https://travis-ci.com/ibumarskov/qa_reports.svg?branch=master)](https://travis-ci.com/ibumarskov/qa_reports)
+
 # QA-reports
 The QA-reports repository contains scripts that allow to report test results to TestRail and analyze them.
 Supports templates (yaml based) for pushing xml attributes to desired TestRail fields.
