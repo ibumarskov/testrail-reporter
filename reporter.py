@@ -3,7 +3,7 @@ import logging
 
 from lib.config import Config
 from lib.reportparser import CheckListParser
-from lib.settings import QAR_LOG_FILE, QAR_LOG_LEVEL
+from lib.settings import TRR_LOG_FILE, TRR_LOG_LEVEL
 from lib.tempestparser import TempestXMLParser
 from lib.testrailanalyzer import TestRailAnalyzer
 from lib.testrailproject import TestRailProject
@@ -12,8 +12,8 @@ from lib.testrailreporter import TestRailReporter
 
 logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s: %(message)s',
-    filename=QAR_LOG_FILE,
-    level=QAR_LOG_LEVEL,
+    filename=TRR_LOG_FILE,
+    level=TRR_LOG_LEVEL,
 )
 LOG = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ def upload(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='qa_report')
+    parser = argparse.ArgumentParser(prog='reporter')
     subparsers = parser.add_subparsers(help='additional help')
 
     parser_a = subparsers.add_parser(

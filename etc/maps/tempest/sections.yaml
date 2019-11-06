@@ -1,3 +1,4 @@
+# Default test suite section mapping for tempest tests
 Glance:
   - "tempest.api.image."
 Keystone:

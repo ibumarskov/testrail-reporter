@@ -1,6 +1,7 @@
 log/
 tmp/
 *.pyc
+*.log
 
 # virtualenv
 .venv/

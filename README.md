@@ -1,13 +1,78 @@
-# Gerrit-CI [![BuildStatus](https://travis-ci.com/ibumarskov/qa_reports.svg?branch=master)](https://travis-ci.com/ibumarskov/qa_reports)
+# TestRail reporter
+[![BuildStatus](https://travis-ci.com/ibumarskov/qa_reports.svg?branch=master)](https://travis-ci.com/ibumarskov/qa_reports)
+<p>The testrail-reporter repository contains scripts that allow to report test results to TestRail and analyze them.</p>
 
-# QA-reports
-The QA-reports repository contains scripts that allow to report test results to TestRail and analyze them.
-Supports templates (yaml based) for pushing xml attributes to desired TestRail fields.
+**Features**
+<ul>
+<li>Templates-based (yaml) mapping for pushing xml attributes to desired TestRail fields. Allows you to publish custom xml files.</li>
+<li>Bulk and per test publishing (WIP).</li>
+<li>Comparison and publishing failed SetUp classes (Currently tempest only)</li>
+<li>Publishing of Test Suites (WIP)</li>
+<li>Analyzer of reported results.</li>
+</ul>
 
 ## Know issues:
-#. upload_test_suite.py doesn't parse rst file with one test (due to specifics of the docutils library)
+<ul>
+<li>Doesn't have action for failed tearDownClass</li>
+<li>Desn't support cases without section</li>
+</ul>
 
-### Run script from docker image
+## Usage
+Before use the script setup TestRail parameters: 
+
+    export TESTRAIL_URL=<url>
+    export TESTRAIL_USER=<user>
+    export TESTRAIL_PASSWORD=<password>
+
+**Upload results**
+
+    usage: reporter upload [-h] [-p PROJECT_NAME] [-t TEST_PLAN_NAME]
+                           [-r TEST_RUN] [-s SUITE_NAME] [-m MILESTONE] [-u] [-c]
+                           [--case-attrs TR_CASE_ATTRS]
+                           [--result-attrs TR_RESULT_ATTRS]
+                           [--case-map TR_CASE_MAP] [--result-map TR_RESULT_MAP]
+                           [--sections-map SECTIONS_MAP]
+                           Tempest report
+    
+    positional arguments:
+      Tempest report        Path to tempest report (.xml)
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -p PROJECT_NAME       Testrail project name.
+      -t TEST_PLAN_NAME     Testrail Test Plan name
+      -r TEST_RUN           Testrail Test Run name.
+      -s SUITE_NAME         Testrail suite name.
+      -m MILESTONE          Testrail milestone.
+      -u                    Update Test Suite
+      -c                    Update Test Suite
+      --case-attrs TR_CASE_ATTRS
+                            Custom case attributes
+      --result-attrs TR_RESULT_ATTRS
+                            Custom result attributes
+      --case-map TR_CASE_MAP
+                            Custom case map
+      --result-map TR_RESULT_MAP
+                            Custom result map
+      --sections-map SECTIONS_MAP
+                            Custom section map
+
+**Analyze results**
+
+    usage: reporter analyze [-h] [-p PROJECT_NAME] [-t TEST_PLAN_NAME]
+                            [-r TEST_RUN]
+                            Check list
+    
+    positional arguments:
+      Check list         Path to check list (.yml)
+    
+    optional arguments:
+      -h, --help         show this help message and exit
+      -p PROJECT_NAME    Testrail project name.
+      -t TEST_PLAN_NAME  Testrail Test Plan name
+      -r TEST_RUN        Testrail Test Run name.
+
+## Run script from docker image
 To run qa_reports against TestRail using docker image:
 1. Pull docker image from [dockerhub](https://hub.docker.com/r/bumarskov/qa_reports)
 `docker push bumarskov/qa_reports:<tagname>`

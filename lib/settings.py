@@ -1,7 +1,7 @@
 import os
 
-# QA Report (QAR)
-QAR_LOG_FILE = os.environ.get(
-    "QAR_LOG_FILE", os.path.join(os.getcwd(), '/var/log/qa_report.log')
+# TestRail Reporter (TRR)
+TRR_LOG_FILE = os.environ.get(
+    "TRR_LOG_FILE", os.path.join(os.getcwd(), 'testrail-reporter.log')
 )
-QAR_LOG_LEVEL = os.environ.get("QAR_LOG_LEVEL", "DEBUG")
+TRR_LOG_LEVEL = os.environ.get("TRR_LOG_LEVEL", "DEBUG")
