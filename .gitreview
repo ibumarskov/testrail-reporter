@@ -1,4 +1,4 @@
 [gerrit]
 host=review.gerrithub.io
 port=29418
-project=ibumarskov/qa_reports.git
+project=ibumarskov/testrail_reporter.git

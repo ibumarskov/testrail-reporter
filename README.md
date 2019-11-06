@@ -1,5 +1,5 @@
 # TestRail reporter
-[![BuildStatus](https://travis-ci.com/ibumarskov/qa_reports.svg?branch=master)](https://travis-ci.com/ibumarskov/qa_reports)
+[![BuildStatus](https://travis-ci.com/ibumarskov/testrail-reporter.svg?branch=master)](https://travis-ci.com/ibumarskov/testrail-reporter)
 <p>The testrail-reporter repository contains scripts that allow to report test results to TestRail and analyze them.</p>
 
 **Features**
@@ -73,11 +73,11 @@ Before use the script setup TestRail parameters:
       -r TEST_RUN        Testrail Test Run name.
 
 ## Run script from docker image
-To run qa_reports against TestRail using docker image:
-1. Pull docker image from [dockerhub](https://hub.docker.com/r/bumarskov/qa_reports)
-`docker push bumarskov/qa_reports:<tagname>`
+To run testrail_reporter against TestRail using docker image:
+1. Pull docker image from [dockerhub](https://hub.docker.com/r/bumarskov/testrail_reporter)
+`docker push bumarskov/testrail_reporter:<tagname>`
 2. Run qa_report.py script to upload test results:
-`docker run -v '<path_to_results>:/tmp/result.xml' -e $TESTRAIL_URL="<url>" -e $TESTRAIL_USER="<user>" -e $TESTRAIL_PASSWORD="<password>" qa_reports:<tagname> python qa_reports.py upload /tmp/<results_file> -p "<TestRail project>" -t "<TestRail test plan>" -r "<TestRail test run>" -s "<TestRail suite>" -c`
+`docker run -v '<path_to_results>:/tmp/result.xml' -e $TESTRAIL_URL="<url>" -e $TESTRAIL_USER="<user>" -e $TESTRAIL_PASSWORD="<password>" testrail_reporter:<tagname> python reporter.py upload /tmp/<results_file> -p "<TestRail project>" -t "<TestRail test plan>" -r "<TestRail test run>" -s "<TestRail suite>" -c`
 
 ## How to build docker image
 Before build docker image from local copy of repository remove all `.*pyc` files and `__pycache__` folder:
