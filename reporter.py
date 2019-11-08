@@ -1,5 +1,6 @@
 import argparse
 import logging
+import json
 
 from lib.config import Config
 from lib.reportparser import CheckListParser
@@ -46,7 +47,10 @@ def upload(args):
     log_settings(args)
     LOG.debug('Testrail suite name: "{0}"'.format(args.suite_name))
     LOG.debug('Milestone: "{0}"'.format(args.milestone))
-
+    if args.configuration is not None:
+        tr_conf = json.loads(args.configuration.replace("\'", '"'))
+    else:
+        tr_conf = None
     report_obj = TempestXMLParser(args.report_path,
                                   tr_case_attrs=args.tr_case_attrs,
                                   tr_result_attrs=args.tr_result_attrs,
@@ -60,8 +64,10 @@ def upload(args):
     reporter_obj = TestRailReporter(project, report_obj)
     if args.update_ts:
         reporter_obj.update_test_suite(args.suite_name)
+
     reporter_obj.report_test_plan(args.test_plan_name, args.suite_name,
-                                  args.test_run, update_existing=True,
+                                  args.test_run, configuration=tr_conf,
+                                  update_existing=True,
                                   remove_untested=args.remove_untested)
 
 
@@ -97,30 +103,36 @@ def main():
     )
     parser_b.add_argument(
         '-p', dest='project_name', default=None,
-        help='Testrail project name.'
+        help='TestRail project name.'
     )
     parser_b.add_argument(
         '-t', dest='test_plan_name',
-        help='Testrail Test Plan name'
+        help='TestRail Plan name'
     )
     parser_b.add_argument(
         '-r', dest='test_run', default=None,
-        help='Testrail Test Run name.'
+        help='TestRail Run name.'
     )
     parser_b.add_argument(
         '-s', dest='suite_name', default=None,
-        help='Testrail suite name.'
+        help='TestRail Suite name.'
     )
     parser_b.add_argument(
         '-m', dest='milestone', default=None,
-        help='Testrail milestone.'
+        help='TestRail milestone.'
     )
     parser_b.add_argument(
-        '-u', dest='update_ts', action="store_true", default=False,
+        '-c', dest='configuration', default=None,
+        help="Set configuration for test entry (Test Run). "
+             "Example: -c {'Contrail':'OC 4.1'}"
+    )
+    parser_b.add_argument(
+        '--update-testsuite', dest='update_ts', action="store_true", default=False,
         help='Update Test Suite'
     )
     parser_b.add_argument(
-        '-c', dest='remove_untested', action="store_true", default=False,
+        '--remove-untested', dest='remove_untested', action="store_true",
+        default=False,
         help='Update Test Suite'
     )
     parser_b.add_argument(
