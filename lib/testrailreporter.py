@@ -82,23 +82,31 @@ class TestRailReporter:
         raise Exception("Can't find configuration for plan entry:\n"
                         "{}:{}".format(group, conf))
 
+    def get_milestone_id(self, name):
+        for m in self.project.milestones:
+            if m['name'] == name:
+                return m['id']
+        raise Exception("Can't find milestone {}".format(name))
+
     def report_test_plan(self, plan_name, suite_name, run_name,
-                         configuration=None, milestone=None,
+                         milestone=None, configuration=None,
                          update_existing=False, remove_untested=False):
         suite = self.project.get_suite_by_name(suite_name)
         plans_list = self.project.get_plans_project()
         plan = None
+        milestone_id = None
         conf_ids = []
         if configuration:
             isinstance(configuration, dict)
             for k, v in configuration.iteritems():
                 conf_ids.append(self.get_config_id(k, v))
-
+        if milestone:
+            milestone_id = self.get_milestone_id(milestone)
         for p in plans_list:
-            if p['name'] == plan_name:
+            if p['name'] == plan_name and p['milestone_id'] == milestone_id:
                 plan = self.project.get_plan(p['id'])
         if plan is None:
-            plan_data = {'name': plan_name}
+            plan_data = {'name': plan_name, 'milestone_id': milestone_id}
             plan = self.project.add_plan_project(plan_data)
 
         run_present = False

@@ -65,8 +65,9 @@ def upload(args):
     if args.update_ts:
         reporter_obj.update_test_suite(args.tr_suite)
 
-    reporter_obj.report_test_plan(args.tr_plan, args.tr_suite,
-                                  args.tr_run, configuration=tr_conf,
+    reporter_obj.report_test_plan(args.tr_plan, args.tr_suite, args.tr_run,
+                                  milestone=args.tr_milestone,
+                                  configuration=tr_conf,
                                   update_existing=True,
                                   remove_untested=args.remove_untested)
 
