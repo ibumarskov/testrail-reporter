@@ -73,11 +73,26 @@ class TestRailReporter:
                     self.convert_milestone2id(testcase)
                     self.project.add_case(tr_section['id'], testcase)
 
+    def get_config_id(self, group, conf):
+        for tr_group in self.project.configurations:
+            if tr_group["name"] == group:
+                for tr_conf in tr_group["configs"]:
+                    if tr_conf["name"] == conf:
+                        return tr_conf["id"]
+        raise Exception("Can't find configuration for plan entry:\n"
+                        "{}:{}".format(group, conf))
+
     def report_test_plan(self, plan_name, suite_name, run_name,
+                         configuration=None, milestone=None,
                          update_existing=False, remove_untested=False):
         suite = self.project.get_suite_by_name(suite_name)
         plans_list = self.project.get_plans_project()
         plan = None
+        conf_ids = []
+        if configuration:
+            isinstance(configuration, dict)
+            for k, v in configuration.iteritems():
+                conf_ids.append(self.get_config_id(k, v))
 
         for p in plans_list:
             if p['name'] == plan_name:
@@ -89,6 +104,8 @@ class TestRailReporter:
         run_present = False
         for r in plan['entries']:
             if run_name == r['name']:
+                if r['runs'][0]["config_ids"] != conf_ids:
+                    continue
                 run_present = True
                 plan_entry = r
                 if not update_existing:
@@ -100,6 +117,9 @@ class TestRailReporter:
                         plan_entry['runs'][0]['url']))
         if not run_present:
             run_data = {'suite_id': suite['id'], 'name': run_name}
+            if configuration:
+                run_data["config_ids"] = conf_ids
+                run_data["runs"] = [{"config_ids": conf_ids}]
             plan_entry = self.project.add_plan_entry(plan['id'], run_data)
 
         run = self.project.get_run(plan_entry['runs'][0]['id'])
@@ -120,6 +140,8 @@ class TestRailReporter:
             case_ids = map(lambda a: a['case_id'], untested_tests)
             data = {'include_all': False,
                     'case_ids': case_ids}
+            if configuration:
+                data["config_ids"] = conf_ids
             self.project.update_plan_entry(plan['id'], plan_entry['id'], data)
 
     def match_group2tests(self, report, test_results):
