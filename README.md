@@ -6,6 +6,7 @@
 <ul>
 <li>Templates-based (yaml) mapping for pushing xml attributes to desired TestRail fields. Allows you to publish custom xml files.</li>
 <li>Bulk and per test publishing (WIP).</li>
+<li>Supports configurations for test plan entry (Test Run)</li>
 <li>Comparison and publishing failed SetUp classes (Currently tempest only)</li>
 <li>Publishing of Test Suites (WIP)</li>
 <li>Analyzer of reported results.</li>
@@ -26,26 +27,30 @@ Before use the script setup TestRail parameters:
 
 **Upload results**
 
-    usage: reporter upload [-h] [-p PROJECT_NAME] [-t TEST_PLAN_NAME]
-                           [-r TEST_RUN] [-s SUITE_NAME] [-m MILESTONE] [-u] [-c]
-                           [--case-attrs TR_CASE_ATTRS]
-                           [--result-attrs TR_RESULT_ATTRS]
-                           [--case-map TR_CASE_MAP] [--result-map TR_RESULT_MAP]
-                           [--sections-map SECTIONS_MAP]
-                           Tempest report
+    usage: reporter.py upload [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
+                              [-s TR_SUITE] [-m TR_MILESTONE] [-c TR_CONF]
+                              [--update-suite] [--remove-untested]
+                              [--case-attrs TR_CASE_ATTRS]
+                              [--result-attrs TR_RESULT_ATTRS]
+                              [--case-map TR_CASE_MAP]
+                              [--result-map TR_RESULT_MAP]
+                              [--sections-map SECTIONS_MAP]
+                              Tempest report
     
     positional arguments:
       Tempest report        Path to tempest report (.xml)
     
     optional arguments:
       -h, --help            show this help message and exit
-      -p PROJECT_NAME       Testrail project name.
-      -t TEST_PLAN_NAME     Testrail Test Plan name
-      -r TEST_RUN           Testrail Test Run name.
-      -s SUITE_NAME         Testrail suite name.
-      -m MILESTONE          Testrail milestone.
-      -u                    Update Test Suite
-      -c                    Update Test Suite
+      -p TR_PROJECT         TestRail Project name.
+      -t TR_PLAN            TestRail Plan name
+      -r TR_RUN             TestRail Run name.
+      -s TR_SUITE           TestRail Suite name.
+      -m TR_MILESTONE       TestRail milestone.
+      -c TR_CONF            Set configuration for test entry (Test Run). Example:
+                            -c {'Contrail':'OC 4.1'}
+      --update-suite        Update Test Suite
+      --remove-untested     Remove untested cases from Test Run
       --case-attrs TR_CASE_ATTRS
                             Custom case attributes
       --result-attrs TR_RESULT_ATTRS
@@ -59,18 +64,17 @@ Before use the script setup TestRail parameters:
 
 **Analyze results**
 
-    usage: reporter analyze [-h] [-p PROJECT_NAME] [-t TEST_PLAN_NAME]
-                            [-r TEST_RUN]
-                            Check list
+    usage: reporter.py analyze [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
+                               Check list
     
     positional arguments:
-      Check list         Path to check list (.yml)
+      Check list     Path to check list (.yml)
     
     optional arguments:
-      -h, --help         show this help message and exit
-      -p PROJECT_NAME    Testrail project name.
-      -t TEST_PLAN_NAME  Testrail Test Plan name
-      -r TEST_RUN        Testrail Test Run name.
+      -h, --help     show this help message and exit
+      -p TR_PROJECT  TestRail Project name.
+      -t TR_PLAN     TestRail Plan name
+      -r TR_RUN      TestRail Run name.
 
 ## Run script from docker image
 To run testrail_reporter against TestRail using docker image:

@@ -13,6 +13,7 @@ class TestRailProject(TestRailAPICalls):
         milestone_f = self.get_milestones_filter(is_completed=False,
                                                  is_started=True)
         self.milestones = self.get_milestones_project(milestone_f)
+        self.configurations = self.get_configs_project()
         self.result_fields = self.get_result_fields()
         self.fuse = fuse
 

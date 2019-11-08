@@ -1,5 +1,6 @@
 import argparse
 import logging
+import json
 
 from lib.config import Config
 from lib.reportparser import CheckListParser
@@ -21,9 +22,9 @@ LOG = logging.getLogger(__name__)
 def log_settings(args):
     LOG.debug('URL: "{0}"'.format(config.url))
     LOG.debug('User: "{0}"'.format(config.user))
-    LOG.debug('Testrail Project name: "{0}"'.format(args.project_name))
-    LOG.debug('Testrail Test Plan: "{0}"'.format(args.test_plan_name))
-    LOG.debug('Testrail Test Run: "{0}"'.format(args.test_run))
+    LOG.debug('Testrail Project name: "{0}"'.format(args.tr_project))
+    LOG.debug('Testrail Test Plan: "{0}"'.format(args.tr_plan))
+    LOG.debug('Testrail Test Run: "{0}"'.format(args.tr_run))
 
 
 def analyze(args):
@@ -35,8 +36,8 @@ def analyze(args):
     project = TestRailProject(url=config.url,
                               user=config.user,
                               password=config.password,
-                              project_name=args.project_name)
-    analyzer = TestRailAnalyzer(project, args.test_run, args.test_plan_name)
+                              project_name=args.tr_project)
+    analyzer = TestRailAnalyzer(project, args.tr_run, args.tr_plan)
     analyzer.analyze_results(check_list_obj)
 
 
@@ -44,9 +45,12 @@ def upload(args):
     LOG.info('========== Upload test results ==========')
     LOG.info('Tempest report file: "{0}"'.format(args.report_path))
     log_settings(args)
-    LOG.debug('Testrail suite name: "{0}"'.format(args.suite_name))
-    LOG.debug('Milestone: "{0}"'.format(args.milestone))
-
+    LOG.debug('TestRail suite name: "{0}"'.format(args.tr_suite))
+    LOG.debug('Milestone: "{0}"'.format(args.tr_milestone))
+    if args.tr_conf is not None:
+        tr_conf = json.loads(args.tr_conf.replace("\'", '"'))
+    else:
+        tr_conf = None
     report_obj = TempestXMLParser(args.report_path,
                                   tr_case_attrs=args.tr_case_attrs,
                                   tr_result_attrs=args.tr_result_attrs,
@@ -56,36 +60,38 @@ def upload(args):
     project = TestRailProject(url=config.url,
                               user=config.user,
                               password=config.password,
-                              project_name=args.project_name)
+                              project_name=args.tr_project)
     reporter_obj = TestRailReporter(project, report_obj)
     if args.update_ts:
-        reporter_obj.update_test_suite(args.suite_name)
-    reporter_obj.report_test_plan(args.test_plan_name, args.suite_name,
-                                  args.test_run, update_existing=True,
+        reporter_obj.update_test_suite(args.tr_suite)
+
+    reporter_obj.report_test_plan(args.tr_plan, args.tr_suite,
+                                  args.tr_run, configuration=tr_conf,
+                                  update_existing=True,
                                   remove_untested=args.remove_untested)
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='reporter')
+    parser = argparse.ArgumentParser(prog='reporter.py')
     subparsers = parser.add_subparsers(help='additional help')
 
     parser_a = subparsers.add_parser(
-        'analyze', help='analyze test report failures.')
+        'analyze', help='analyze test run failures.')
     parser_a.add_argument(
         'check_list_path', metavar='Check list', type=str,
         help='Path to check list (.yml)'
     )
     parser_a.add_argument(
-        '-p', dest='project_name', default=None,
-        help='Testrail project name.'
+        '-p', dest='tr_project', default=None,
+        help='TestRail Project name.'
     )
     parser_a.add_argument(
-        '-t', dest='test_plan_name',
-        help='Testrail Test Plan name'
+        '-t', dest='tr_plan',
+        help='TestRail Plan name'
     )
     parser_a.add_argument(
-        '-r', dest='test_run', default=None,
-        help='Testrail Test Run name.'
+        '-r', dest='tr_run', default=None,
+        help='TestRail Run name.'
     )
     parser_a.set_defaults(func=analyze)
 
@@ -96,32 +102,39 @@ def main():
         help='Path to tempest report (.xml)'
     )
     parser_b.add_argument(
-        '-p', dest='project_name', default=None,
-        help='Testrail project name.'
+        '-p', dest='tr_project', default=None,
+        help='TestRail Project name.'
     )
     parser_b.add_argument(
-        '-t', dest='test_plan_name',
-        help='Testrail Test Plan name'
+        '-t', dest='tr_plan',
+        help='TestRail Plan name'
     )
     parser_b.add_argument(
-        '-r', dest='test_run', default=None,
-        help='Testrail Test Run name.'
+        '-r', dest='tr_run', default=None,
+        help='TestRail Run name.'
     )
     parser_b.add_argument(
-        '-s', dest='suite_name', default=None,
-        help='Testrail suite name.'
+        '-s', dest='tr_suite', default=None,
+        help='TestRail Suite name.'
     )
     parser_b.add_argument(
-        '-m', dest='milestone', default=None,
-        help='Testrail milestone.'
+        '-m', dest='tr_milestone', default=None,
+        help='TestRail milestone.'
     )
     parser_b.add_argument(
-        '-u', dest='update_ts', action="store_true", default=False,
+        '-c', dest='tr_conf', default=None,
+        help="Set configuration for test entry (Test Run). "
+             "Example: -c {'Contrail':'OC 4.1'}"
+    )
+    parser_b.add_argument(
+        '--update-suite', dest='update_ts', action="store_true",
+        default=False,
         help='Update Test Suite'
     )
     parser_b.add_argument(
-        '-c', dest='remove_untested', action="store_true", default=False,
-        help='Update Test Suite'
+        '--remove-untested', dest='remove_untested', action="store_true",
+        default=False,
+        help='Remove untested cases from Test Run'
     )
     parser_b.add_argument(
         '--case-attrs', dest='tr_case_attrs',
