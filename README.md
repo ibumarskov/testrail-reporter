@@ -5,10 +5,10 @@
 **Features**
 <ul>
 <li>Templates-based (yaml) mapping for pushing xml attributes to desired TestRail fields. Allows you to publish custom xml files.</li>
-<li>Bulk and per test publishing (WIP).</li>
+<li>Bulk test publishing.</li>
 <li>Supports configurations for test plan entry (Test Run)</li>
 <li>Comparison and publishing failed SetUp classes (Currently tempest only)</li>
-<li>Publishing of Test Suites (WIP)</li>
+<li>Publishing of Test Suites with template-based mappings for case attributes. PyTest and Tempest test lists are supported from the box.</li>
 <li>Analyzer of reported results.</li>
 </ul>
 

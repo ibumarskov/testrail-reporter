@@ -1,5 +1,6 @@
 # Default attributes for test case
 title: ''
+section_id: ''
 type_id: 'Automated'
 priority_id: 4
 milestone_id: 'MCP1.1'

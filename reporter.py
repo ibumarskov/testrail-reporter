@@ -9,7 +9,7 @@ from lib.tempestparser import TempestXMLParser
 from lib.testrailanalyzer import TestRailAnalyzer
 from lib.testrailproject import TestRailProject
 from lib.testrailreporter import TestRailReporter
-
+from lib.reportparser import TestListParser
 
 logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s: %(message)s',
@@ -41,11 +41,11 @@ def analyze(args):
     analyzer.analyze_results(check_list_obj)
 
 
-def upload(args):
-    LOG.info('========== Upload test results ==========')
-    LOG.info('Tempest report file: "{0}"'.format(args.report_path))
+def publish(args):
+    LOG.info('========== Publish test results ==========')
+    LOG.info('Report file: "{0}"'.format(args.report_path))
     log_settings(args)
-    LOG.debug('TestRail suite name: "{0}"'.format(args.tr_suite))
+    LOG.debug('Suite name: "{0}"'.format(args.tr_suite))
     LOG.debug('Milestone: "{0}"'.format(args.tr_milestone))
     if args.tr_conf is not None:
         tr_conf = json.loads(args.tr_conf.replace("\'", '"'))
@@ -72,10 +72,24 @@ def upload(args):
                                   remove_untested=args.remove_untested)
 
 
+def update_suite(args):
+    LOG.info('========== Update Test Suite ==========')
+    LOG.info('List of tests: "{0}"'.format(args.tc_list_path))
+    # log_settings(args)
+    LOG.debug('Suite name: "{0}"'.format(args.tr_suite))
+
+    # project = TestRailProject(url=config.url,
+    #                           user=config.user,
+    #                           password=config.password,
+    #                           project_name=args.tr_project)
+    report_suite_obj = TestListParser(args.tc_list_path)
+    pass
+
+
 def main():
     parser = argparse.ArgumentParser(prog='reporter.py')
     subparsers = parser.add_subparsers(help='additional help')
-
+    # ================================ analyze ================================
     parser_a = subparsers.add_parser(
         'analyze', help='analyze test run failures.')
     parser_a.add_argument(
@@ -95,9 +109,9 @@ def main():
         help='TestRail Run name.'
     )
     parser_a.set_defaults(func=analyze)
-
+    # ================================ publish ================================
     parser_b = subparsers.add_parser(
-        'upload', help='upload test results to TestRail.')
+        'publish', help='publish test results to TestRail.')
     parser_b.add_argument(
         'report_path', metavar='Tempest report', type=str,
         help='Path to tempest report (.xml)'
@@ -125,7 +139,7 @@ def main():
     parser_b.add_argument(
         '-c', dest='tr_conf', default=None,
         help="Set configuration for test entry (Test Run). "
-             "Example: -c {'Contrail':'OC 4.1'}"
+             "Example: -c \"{'Contrail':'OC 4.1'}\""
     )
     parser_b.add_argument(
         '--update-suite', dest='update_ts', action="store_true",
@@ -162,8 +176,24 @@ def main():
         default='etc/maps/tempest/sections.yaml',
         help='Custom section map'
     )
-    parser_b.set_defaults(func=upload)
-
+    parser_b.set_defaults(func=publish)
+    # ================================ update ================================
+    parser_c = subparsers.add_parser(
+        'update', help='Update Test Suite in TestRail.')
+    parser_c.add_argument(
+        'tc_list_path', metavar='List of test cases', type=str,
+        help='Path to file with list of tests.'
+    )
+    parser_c.add_argument(
+        '-p', dest='tr_project', default=None,
+        help='TestRail Project name.'
+    )
+    parser_c.add_argument(
+        '-s', dest='tr_suite', default=None,
+        help='TestRail Suite name.'
+    )
+    parser_c.set_defaults(func=update_suite)
+    # =========================================================================
     args = parser.parse_args()
     args.func(args)
 
