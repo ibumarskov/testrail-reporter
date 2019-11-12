@@ -1,41 +1,35 @@
 # TestRail reporter
 [![BuildStatus](https://travis-ci.com/ibumarskov/testrail-reporter.svg?branch=master)](https://travis-ci.com/ibumarskov/testrail-reporter)
-<p>The testrail-reporter repository contains scripts that allow to report test results to TestRail and analyze them.</p>
+
+The testrail-reporter repository contains scripts that allow to report test results to TestRail and analyze them.
 
 **Features**
-<ul>
-<li>Templates-based (yaml) mapping for pushing xml attributes to desired TestRail fields. Allows you to publish custom xml files.</li>
-<li>Bulk and per test publishing (WIP).</li>
-<li>Supports configurations for test plan entry (Test Run)</li>
-<li>Comparison and publishing failed SetUp classes (Currently tempest only)</li>
-<li>Publishing of Test Suites (WIP)</li>
-<li>Analyzer of reported results.</li>
-</ul>
+- Templates-based (yaml) mapping for pushing xml attributes to desired TestRail fields. Allows you to publish custom xml files.
+- Bulk test publishing.
+- Supports configurations for test plan entry (Test Run)
+- Comparison and publishing failed SetUp classes (Currently tempest only)
+- Publishing of Test Suites with template-based mappings for case attributes. PyTest and Tempest test lists are supported from the box.
+- Analyzer of reported results.
 
-## Know issues:
-<ul>
-<li>Action for failed tearDownClass is't defined</li>
-<li>Publishing of test cases without section isn't supported yet (WIP)</li>
-</ul>
+## Know issues and limitations:
+- Nested sections aren't supported
+- Action for failed tearDownClass is't defined
 
 ## Usage
-Before use the script setup TestRail parameters: 
+Before use the script set TestRail parameters: 
 
     export TESTRAIL_URL=<url>
     export TESTRAIL_USER=<user>
     export TESTRAIL_PASSWORD=<password>
 
-**Upload results**
+### Publish results
 
-    usage: reporter.py upload [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
-                              [-s TR_SUITE] [-m TR_MILESTONE] [-c TR_CONF]
-                              [--update-suite] [--remove-untested]
-                              [--case-attrs TR_CASE_ATTRS]
-                              [--result-attrs TR_RESULT_ATTRS]
-                              [--case-map TR_CASE_MAP]
-                              [--result-map TR_RESULT_MAP]
-                              [--sections-map SECTIONS_MAP]
-                              Tempest report
+    usage: reporter.py publish [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
+                               [-s TR_SUITE] [-m TR_MILESTONE] [-c TR_CONF]
+                               [--remove-untested]
+                               [--result-attrs TR_RESULT_ATTRS]
+                               [--result-map TR_RESULT_MAP]
+                               Tempest report
     
     positional arguments:
       Tempest report        Path to tempest report (.xml)
@@ -48,21 +42,30 @@ Before use the script setup TestRail parameters:
       -s TR_SUITE           TestRail Suite name.
       -m TR_MILESTONE       TestRail milestone.
       -c TR_CONF            Set configuration for test entry (Test Run). Example:
-                            -c {'Contrail':'OC 4.1'}
-      --update-suite        Update Test Suite
+                            -c "{'Contrail':'OC 4.1'}"
       --remove-untested     Remove untested cases from Test Run
-      --case-attrs TR_CASE_ATTRS
-                            Custom case attributes
       --result-attrs TR_RESULT_ATTRS
                             Custom result attributes
-      --case-map TR_CASE_MAP
-                            Custom case map
       --result-map TR_RESULT_MAP
                             Custom result map
-      --sections-map SECTIONS_MAP
-                            Custom section map
 
-**Analyze results**
+### Update test suite
+
+    usage: reporter.py update [-h] [-p TR_PROJECT] [-s TR_SUITE]
+                              [--tc-map TESTCASE_MAP]
+                              List of test cases
+    
+    positional arguments:
+      List of test cases    Path to file with list of tests.
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -p TR_PROJECT         TestRail Project name.
+      -s TR_SUITE           TestRail Suite name.
+      --tc-map TESTCASE_MAP
+                            TestCase map
+
+### Analyze results
 
     usage: reporter.py analyze [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
                                Check list
@@ -76,12 +79,43 @@ Before use the script setup TestRail parameters:
       -t TR_PLAN     TestRail Plan name
       -r TR_RUN      TestRail Run name.
 
-## Run script from docker image
+### Run script from docker image
 To run testrail_reporter against TestRail using docker image:
 1. Pull docker image from [dockerhub](https://hub.docker.com/r/bumarskov/testrail_reporter)
 `docker push bumarskov/testrail_reporter:<tagname>`
 2. Run qa_report.py script to upload test results:
 `docker run -v '<path_to_results>:/tmp/result.xml' -e $TESTRAIL_URL="<url>" -e $TESTRAIL_USER="<user>" -e $TESTRAIL_PASSWORD="<password>" testrail_reporter:<tagname> python reporter.py upload /tmp/<results_file> -p "<TestRail project>" -t "<TestRail test plan>" -r "<TestRail test run>" -s "<TestRail suite>" -c`
+
+### Templates and actions
+
+#### Template for results
+
+Contains following attributes:
+
+tc_tag - name of xml element's tag that contains test case result. XML elements with another tags (exclude child elements) will be ignored
+test_id, suite_id, comments - sections describe appropriate attributes of result object.
+each section can contains following attributes:
+default - default value for attribute if action returns empty string (not applicable for test_id section)
+xml_actions - actions that will be applied for xml element. Description of supported XML actions can be found here: <>
+
+also template may contains (optionally) filters and actions for setUp and tearDown results: filter_setup, filter_teardown
+if sections are determined, they must contains following attributes:
+match - regular expression pattern. Only if test name matches the pattern, another actions will be executed.
+actions - list of action for string generation. Description of supported actions can be found here: <>
+
+Example of template: *etc/maps/pytest/name_template.yaml*
+
+#### Template for test cases list
+
+You can provide custom template to map title and suite names from tests list. For title and suite are supported actions that can be found here: <>
+
+#### Actions for string generation (actions)
+- custom-map - contains list of dictionaries. Checks if test case match dict.value (re.search() is used) and return dict.key as name.
+- find - get first element found by re.findall() function.
+- replace - replaces all occurrences of found substrings.
+
+#### Actions for string generation from xml file (xml_actions)
+TO DO
 
 ## How to build docker image
 Before build docker image from local copy of repository remove all `.*pyc` files and `__pycache__` folder:
