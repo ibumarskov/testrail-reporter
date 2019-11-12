@@ -1,9 +1,3 @@
-docutils
 flake8
-jira
-launchpadlib
-prettytable
 pyyaml
-rst
-simplejson
 tox

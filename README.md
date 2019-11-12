@@ -1,31 +1,28 @@
 # TestRail reporter
 [![BuildStatus](https://travis-ci.com/ibumarskov/testrail-reporter.svg?branch=master)](https://travis-ci.com/ibumarskov/testrail-reporter)
-<p>The testrail-reporter repository contains scripts that allow to report test results to TestRail and analyze them.</p>
+
+The testrail-reporter repository contains scripts that allow to report test results to TestRail and analyze them.
 
 **Features**
-<ul>
-<li>Templates-based (yaml) mapping for pushing xml attributes to desired TestRail fields. Allows you to publish custom xml files.</li>
-<li>Bulk and per test publishing (WIP).</li>
-<li>Supports configurations for test plan entry (Test Run)</li>
-<li>Comparison and publishing failed SetUp classes (Currently tempest only)</li>
-<li>Publishing of Test Suites (WIP)</li>
-<li>Analyzer of reported results.</li>
-</ul>
+- Templates-based (yaml) mapping for pushing xml attributes to desired TestRail fields. Allows you to publish custom xml files.
+- Bulk test publishing.
+- Supports configurations for test plan entry (Test Run)
+- Comparison and publishing failed SetUp classes (Currently tempest only)
+- Publishing of Test Suites with template-based mappings for case attributes. PyTest and Tempest test lists are supported from the box.
+- Analyzer of reported results.
 
-## Know issues:
-<ul>
-<li>Action for failed tearDownClass is't defined</li>
-<li>Publishing of test cases without section isn't supported yet (WIP)</li>
-</ul>
+## Know issues and limitations:
+- Nested sections aren't supported
+- Action for failed tearDownClass is't defined
 
 ## Usage
-Before use the script setup TestRail parameters: 
+Before use the script set TestRail parameters: 
 
     export TESTRAIL_URL=<url>
     export TESTRAIL_USER=<user>
     export TESTRAIL_PASSWORD=<password>
 
-**Upload results**
+### Publish results
 
     usage: reporter.py upload [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
                               [-s TR_SUITE] [-m TR_MILESTONE] [-c TR_CONF]
@@ -62,7 +59,19 @@ Before use the script setup TestRail parameters:
       --sections-map SECTIONS_MAP
                             Custom section map
 
-**Analyze results**
+### Update test suite
+
+**Template for test cases list**
+
+You can provide custom template to map title and suite name for test. For title and suite are supported following actions (in order of priority):
+
+- custom-map - contains list of dictionaries. Checks if test case match dict.value (re.search() is used) and return dict.key as name.
+- find - get first element found by re.findall() function.
+- replace - replaces all occurrences of found substrings.
+
+Example of template: *etc/maps/pytest/name_template.yaml*
+
+### Analyze results
 
     usage: reporter.py analyze [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
                                Check list

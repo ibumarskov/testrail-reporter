@@ -2,7 +2,6 @@ import logging
 import yaml
 
 from lib.testrailproject import TestRailProject
-from lib.reportparser import ReportParser
 
 LOG = logging.getLogger(__name__)
 
@@ -14,64 +13,81 @@ class TestRailReporter:
         'advanced': 3
     }
 
-    def __init__(self, project, report_obj,
+    def __init__(self, url, user, password, project_name,
                  attr2id_map='etc/attrs2id.yaml'):
-        isinstance(project, TestRailProject)
-        isinstance(report_obj, ReportParser)
-        self.project = project
-        self.suite_list = report_obj.suite_list
-        self.result_list = report_obj.result_list
-        self.result_list_setUpClass = report_obj.result_list_setUpClass
-        self.case_types = project.get_case_types()
-        self.case_fields = project.get_case_fields()
-        self.milestones = project.get_milestones_project()
+        self.project = TestRailProject(url, user, password, project_name)
         with open(attr2id_map, 'r') as stream:
             self.attr2id_map = yaml.safe_load(stream)
 
-    def convert_casetype2id(self, test_case):
-        for i in self.case_types:
-            if test_case['type_id'] == i['name']:
-                test_case['type_id'] = i['id']
+        # self.suite_list = report_obj.suite_list
+        # self.result_list = report_obj.result_list
+        # self.result_list_setUpClass = report_obj.result_list_setUpClass
+        # self.case_types = project.get_case_types()
+        # self.case_fields = project.get_case_fields()
 
-    def convert_milestone2id(self, test_case):
-        for i in self.milestones:
-            if test_case['milestone_id'] == i['name']:
-                test_case['milestone_id'] = i['id']
-
-    def update_test_suite(self, suite_name):
+    def update_test_suite(self, name, tc_list):
         # Check suite name and create if needed:
         try:
-            suite_id = self.project.get_suite_by_name(suite_name)['id']
+            suite = self.project.get_suite_by_name(name)
         except Exception:
-            suite_id = self.project.add_suite_project(suite_name)
-
+            suite_data = {"name": name}
+            suite = self.project.add_suite_project(suite_data)
+        suite_id = suite['id']
         tr_sections = self.project.get_sections_project(suite_id)
 
-        for section in self.suite_list:
-            # TO DO - fix tests without section
-            tr_section = None
-            for tr_s in tr_sections:
-                if tr_s['name'] == section['section_name']:
-                    tr_section = tr_s
+        # Add case without section
+        tr_cases = {}
+        for tc in tc_list:
+            # Remove section_id from dict and convert it to id if necessary
+            section_id = tc.pop('section_id')
+            if isinstance(section_id, str):
+                try:
+                    section_id = self.get_section_id(section_id, suite)
+                except Exception:
+                    section_data = {'name': section_id,
+                                    'suite_id': suite_id}
+                    self.project.add_section_project(section_data)
+                    section_id = self.get_section_id(section_id, suite)
 
-            if not tr_section:
-                data = {'suite_id': suite_id, 'name': section['section_name']}
-                self.project.add_section_project(data)
-                tr_section = self.project.get_section_by_name(
-                    suite_id, section['section_name'])
+            if isinstance(tc['type_id'], str):
+                self.convert_casetype2id(tc)
+            if isinstance(tc['milestone_id'], str):
+                self.convert_milestone2id(tc)
 
-            tr_tests = self.project.get_cases_project(suite_id,
-                                                      tr_section['id'])
+            if section_id not in tr_cases:
+                tr_cases[section_id] = {}
+                tr_cases[section_id]['cases'] = \
+                    self.project.get_cases_project(suite_id, section_id)
+                tr_cases[section_id]['titles'] = []
+                for tr_tc in tr_cases[section_id]['cases']:
+                    tr_cases[section_id]['titles'].append(tr_tc['title'])
 
-            titles_list = []
-            for tr_t in tr_tests:
-                titles_list.append(tr_t['title'])
+            if tc['title'] not in tr_cases[section_id]['titles']:
+                self.project.add_case(section_id, tc)
 
-            for testcase in section['test_cases']:
-                if testcase['title'] not in titles_list:
-                    self.convert_casetype2id(testcase)
-                    self.convert_milestone2id(testcase)
-                    self.project.add_case(tr_section['id'], testcase)
+    def convert_casetype2id(self, test_case):
+        for i in self.project.get_case_types():
+            if test_case['type_id'] == i['name']:
+                test_case['type_id'] = i['id']
+                return True
+        raise Exception("Can't find Case Type '{}'"
+                        "".format(test_case['type_id']))
+
+    def convert_milestone2id(self, test_case):
+        for i in self.project.milestones:
+            if test_case['milestone_id'] == i['name']:
+                test_case['milestone_id'] = i['id']
+                return True
+        raise Exception("Can't find Milestone '{}'"
+                        "".format(test_case['milestone_id']))
+
+    def get_section_id(self, name, suite):
+        sections = self.project.get_sections_project(suite['id'])
+        for i in sections:
+            if name == i['name']:
+                return i['id']
+        raise Exception("Can't find Section '{}' in Test Suite '{}'"
+                        "".format(name, suite['name']))
 
     def get_config_id(self, group, conf):
         for tr_group in self.project.configurations:

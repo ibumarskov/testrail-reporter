@@ -1,0 +1,7 @@
+title:
+  find: '.*::(.*)$'
+section:
+  find: '^.*(::.*::)'
+  replace:
+    old: '::'
+    new: ''
