@@ -14,7 +14,9 @@ class TestRailProject(TestRailAPICalls):
                                                  is_started=True)
         self.milestones = self.get_milestones_project(milestone_f)
         self.configurations = self.get_configs_project()
+        self.case_fields = self.get_case_fields()
         self.result_fields = self.get_result_fields()
+        self.priorities = self.get_priorities()
         self.fuse = fuse
 
     def _get_project_by_name(self, project_name):

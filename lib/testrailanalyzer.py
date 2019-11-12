@@ -1,9 +1,27 @@
 import logging
+import yaml
 
 from lib.testrailproject import TestRailProject
-from lib.reportparser import CheckListParser
 
 LOG = logging.getLogger(__name__)
+
+
+class CheckListParser(object):
+    def __init__(self, check_list_attrs='etc/check_list_example.yaml'):
+        with open(check_list_attrs, 'r') as stream:
+            self.attrs = yaml.safe_load(stream)
+        self._check_structure()
+
+    def _check_structure(self):
+        for test in self.attrs['tests']:
+            if 'title' not in test:
+                raise Exception("title not found")
+            if 'status' not in test:
+                raise Exception("status not found")
+            if 'errors' not in test:
+                test['errors'] = None
+            if 'defects' not in test:
+                test['defects'] = None
 
 
 class TestRailAnalyzer:

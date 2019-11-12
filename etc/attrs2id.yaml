@@ -1,8 +1,2 @@
-milestone:
-  - milestone_id
-
-case_types:
-  - type_id
-
-case_fields:
-  - custom_qa_team
+attributes2id:
+  - 'custom_qa_team'

@@ -1,11 +1,11 @@
 # Default attributes for test case
 title: ''
+section_id: 'Test Cases'
 type_id: 'Automated'
-priority_id: 4
+priority_id: ''
 milestone_id: 'MCP1.1'
 custom_test_case_description: ''
 custom_test_case_steps:
   - content: 'Run test'
     expected: 'Test passed'
-custom_report_label: ''
-custom_qa_team: 4
+custom_qa_team: 'MCP'

@@ -1,4 +1,4 @@
 # Default attributes for test result
-title: ''
-status: ''
+test_id: ''
+status_id: ''
 comment: ''

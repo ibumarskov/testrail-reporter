@@ -1,0 +1,43 @@
+tc_tag: 'testcase'
+test_id:
+  xml_actions:
+    - get_attribute: 'classname'
+    - add_string: '.'
+    - get_attribute: 'name'
+status_id:
+  default: 'passed'
+  xml_actions:
+    - check:
+        child:
+          tag: 'failure'
+          xml_actions:
+            - add_string: 'failed'
+    - check:
+        child:
+          tag: 'skipped'
+          xml_actions:
+            - add_string: 'skipped'
+comment:
+  default: ''
+  xml_actions:
+    - check:
+        child:
+          tag: 'failure'
+          xml_actions:
+            - get_element_text:
+    - check:
+        child:
+          tag: 'skipped'
+          xml_actions:
+            - get_element_text:
+
+filter_setup:
+  match: '.*setUpClass .*'
+  actions:
+    - find: '.*setUpClass.*\((.*)\)'
+
+filter_teardown:
+  match: '.*tearDownClass .*'
+  status_id: 'other'
+  actions:
+    - find: '.*tearDownClass.*\((.*)\)'
