@@ -73,7 +73,7 @@ class TestRailReporter:
 
     def _convert_status2id(self, result):
         for s in self.project.statuses:
-            if result['status_id'] == s['name']:
+            if result['status_id'].lower() == s['label'].lower():
                 result['status_id'] = s['id']
                 return True
         raise Exception("Can't find status: {}".format(result['status_id']))

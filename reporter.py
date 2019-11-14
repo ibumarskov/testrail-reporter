@@ -3,11 +3,10 @@ import logging
 import json
 
 from lib.config import Config
-from lib.reportparser import CheckListParser
 from lib.settings import TRR_LOG_FILE, TRR_LOG_LEVEL
 from lib.reportparser import ReportParser
 from lib.testcaseparser import TestCaseParser
-from lib.testrailanalyzer import TestRailAnalyzer
+from lib.testrailanalyzer import CheckListParser, TestRailAnalyzer
 from lib.testrailproject import TestRailProject
 from lib.testrailreporter import TestRailReporter
 
@@ -138,7 +137,7 @@ def main():
     parser_b.add_argument(
         '-c', dest='tr_conf', default=None,
         help="Set configuration for test entry (Test Run). "
-             "Example: -c \"{'Contrail':'OC 4.1'}\""
+             "Example: -c \"{'Operating Systems':'Ubuntu 18.04'}\""
     )
     parser_b.add_argument(
         '--remove-untested', dest='remove_untested', action="store_true",
