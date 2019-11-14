@@ -41,7 +41,7 @@ Before use the script set TestRail parameters:
       -s TR_SUITE           TestRail Suite name.
       -m TR_MILESTONE       TestRail milestone.
       -c TR_CONF            Set configuration for test entry (Test Run). Example:
-                            -c "{'Contrail':'OC 4.1'}"
+                            -c "{'Operating Systems':'Ubuntu 18.04'}"
       --remove-untested     Remove untested cases from Test Run
       --result-attrs TR_RESULT_ATTRS
                             Custom result attributes
@@ -154,7 +154,7 @@ To run testrail_reporter against TestRail using docker image:
 1. Pull docker image from [dockerhub](https://hub.docker.com/r/bumarskov/testrail_reporter)
 `docker push bumarskov/testrail_reporter:<tagname>`
 2. Run qa_report.py script to upload test results:
-`docker run -v '<path_to_results>:/tmp/result.xml' -e $TESTRAIL_URL="<url>" -e $TESTRAIL_USER="<user>" -e $TESTRAIL_PASSWORD="<password>" testrail_reporter:<tagname> python reporter.py publish /tmp/<results_file> -p "<TestRail project>" -t "<TestRail test plan>" -r "<TestRail test run>" -s "<TestRail suite>" -c`
+`docker run -v '<path_to_results>:/tmp/result.xml' -e TESTRAIL_URL="<url>" -e TESTRAIL_USER="<user>" -e TESTRAIL_PASSWORD="<password>" testrail-reporter:<tagname> python reporter.py publish /tmp/<results_file> -p "<TestRail project>" -t "<TestRail test plan>" -r "<TestRail test run>" -s "<TestRail suite>" -c "<Configuration>" --remove-untested`
 
 ### How to build docker image
 Before build docker image from local copy of repository remove all `.*pyc` files and `__pycache__` folder:
