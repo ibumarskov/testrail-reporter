@@ -15,7 +15,7 @@ The testrail-reporter repository contains scripts that allow to report test resu
 - Nested sections aren't supported
 
 ## Usage
-Before use the script set TestRail parameters: 
+Set the TestRail parameters before using the script:
 
     export TESTRAIL_URL=<url>
     export TESTRAIL_USER=<user>
@@ -91,7 +91,7 @@ Before use the script set TestRail parameters:
 
 Each section can contains following attributes:
 - *default* - default value for attribute if action returns empty string (not applicable for test_id section)
-- *xml_actions* - actions that will be applied for xml element. Description of supported XML actions can be found below. 
+- *xml_actions* - actions that will be applied for xml element. Description of supported XML actions can be found [below](#xml-actions). 
 
 **Results for setUp/tearDown classes:**
 
@@ -102,11 +102,11 @@ Optionally template can contains filter and actions for setUp and tearDown class
 if sections are determined, they must contains following attributes:
 - *match* - regular expression pattern. Only if test name matches the pattern, another actions will be executed.
 - *status_id* (optionally) - set custom status
-- *actions* - list of action for string generation. Description of supported actions can be found below.
+- *actions* - list of action for string generation. Description of supported actions can be found [below](#actions).
 
-Example of template: *etc/maps/pytest/case_template.yaml*
+Example of template: *etc/maps/pytest/result_template.yaml*
 
-### Template for test cases
+### Template for test cases 
 
 **Attributes description:**
 
@@ -115,7 +115,9 @@ Many frameworks provide the ability to print list of test cases. Examples:
     pytest --collect-only -q .
     tempest run -l
  
- Using test case template you can generate list with test cases to update TestRail's Test Suite. Template supports generation of *title* and *section* for each test in tests list. For title and section are supported actions that can be found here: <>
+ Using test case template you can generate list with test cases to update TestRail's Test Suite.
+ - *title* - contains list of actions for generation test name. 
+ - *section* - contains list of actions for generation test name. Description of supported actions can be found [below](#actions).
 
 ### Template for custom case fields
 
@@ -125,17 +127,17 @@ This template is used for convert name of custom attribute to id.
 
 Example of template: *etc/attrs2id.yaml*
 
-### Actions for string generation
+### Actions for string generation {#actions}
 
 - *custom-map* - contains list of dictionaries. Checks if test case match dict.value (re.search() is used) and return dict.key as name.
 - *find* - get first element found by re.findall() function.
 - *replace* - replaces all occurrences of found substrings.
 
-### Actions for string generation from xml file
+### Actions for string generation from xml file {#xml-actions}
 
 XML actions are used to generate string from XML file. All actions are performed in the order specified in template.
 
-- *get_attribute* - add (concatenate xml attribute value with the specified name.
+- *get_attribute* - add (concatenate) xml attribute value with the specified name.
 - *add_string* - add (concatenate) custom string.
 - *get_element_text* - add
 - *check* - checks specified condition and execute xml_actions if True. This action allow to take nested xml elements.
