@@ -38,6 +38,5 @@ filter_setup:
 
 filter_teardown:
   match: '.*tearDownClass .*'
-  status_id: 'Other'
   actions:
     - find: '.*tearDownClass.*\((.*)\)'

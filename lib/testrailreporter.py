@@ -167,8 +167,10 @@ class TestRailReporter:
             if p['name'] == plan_name and p['milestone_id'] == milestone_id:
                 plan = self.project.get_plan(p['id'])
         if plan is None:
+            LOG.info("TestPlan wasn't found and will be created.")
             plan_data = {'name': plan_name, 'milestone_id': milestone_id}
             plan = self.project.add_plan_project(plan_data)
+        LOG.info("TestPlan url: {}".format(plan['url']))
 
         run_present = False
         for r in plan['entries']:
@@ -194,6 +196,18 @@ class TestRailReporter:
         run = self.project.get_run(plan_entry['runs'][0]['id'])
         tr_tests = self.project.get_tests(run['id'])
 
+        # Analysis of TearDown actions should be processed for raw results to
+        # exclude false results for untested test cases.
+        for res_td in results['results_teardown']:
+            for res in results['results']:
+                if res_td['test_id'] in res['test_id']:
+                    res['comment'] += "=================================\n"
+                    res['comment'] += "Some TearDown actions are failed:\n"
+                    res['comment'] += "=================================\n"
+                    res['comment'] += res_td['comment']
+                    LOG.warning("TestCase {} has failed TearDown action. "
+                                "Please check logs.".format(res['test_id']))
+
         for res in results['results']:
             if isinstance(res['test_id'], str):
                 self._convert_test2id(res, tr_tests)
@@ -206,15 +220,11 @@ class TestRailReporter:
             results_setup = self.match_group2tests(res, tr_tests)
             results['results'].extend(results_setup)
 
-        for res in results['results_teardown']:
-            if isinstance(res['status_id'], str):
-                self._convert_status2id(res)
-            results_teardown = self.match_group2tests(res, tr_tests)
-            results['results'].extend(results_teardown)
-
         self.project.add_results(run['id'], {'results': results['results']})
+        LOG.info("Results were uploaded.")
 
         if remove_untested:
+            LOG.info("Remove untested tests.")
             untested_tests = self.get_untested_tests(run['id'])
             case_ids = map(lambda a: a['case_id'], untested_tests)
             data = {'include_all': False,
@@ -222,6 +232,7 @@ class TestRailReporter:
             if configuration:
                 data["config_ids"] = conf_ids
             self.project.update_plan_entry(plan['id'], plan_entry['id'], data)
+        LOG.info("Completed.")
 
     def get_untested_tests(self, run_id):
         status_ids = map(lambda a: a['id'], self.project.statuses)

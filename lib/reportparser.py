@@ -62,12 +62,10 @@ class ReportParser(object):
             if 'filter_teardown' in self.tr_result_map:
                 pattern = self.tr_result_map['filter_teardown']['match']
                 actions = self.tr_result_map['filter_teardown']['actions']
-                status_id = self.tr_result_map['filter_teardown']['status_id']
                 if re.match(pattern, res['test_id']):
                     out = perform_actions(res['test_id'],
                                           actions)
                     res['test_id'] = out
-                    res['status_id'] = status_id
                     results['results_teardown'].append(res)
                     continue
             results['results'].append(res)
