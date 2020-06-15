@@ -159,7 +159,7 @@ class TestRailReporter:
         conf_ids = []
         if configuration:
             isinstance(configuration, dict)
-            for k, v in configuration.iteritems():
+            for k, v in configuration.items():
                 conf_ids.append(self.get_config_id(k, v))
         if milestone:
             milestone_id = self.get_milestone_id(milestone)
@@ -226,7 +226,7 @@ class TestRailReporter:
         if remove_untested:
             LOG.info("Remove untested tests.")
             untested_tests = self.get_untested_tests(run['id'])
-            case_ids = map(lambda a: a['case_id'], untested_tests)
+            case_ids = list(map(lambda a: a['case_id'], untested_tests))
             data = {'include_all': False,
                     'case_ids': case_ids}
             if configuration:
@@ -235,7 +235,7 @@ class TestRailReporter:
         LOG.info("Completed.")
 
     def get_untested_tests(self, run_id):
-        status_ids = map(lambda a: a['id'], self.project.statuses)
+        status_ids = list(map(lambda a: a['id'], self.project.statuses))
         status_ids.remove(self.project.get_status_by_label("untested"))
         tests_filter = self.project.get_tests_filter(status_id=status_ids)
         return self.project.get_tests(run_id, filter=tests_filter)

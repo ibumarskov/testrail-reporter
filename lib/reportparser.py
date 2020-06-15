@@ -73,7 +73,7 @@ class ReportParser(object):
 
     @staticmethod
     def action_get_attribute(child, attr_name):
-        for key, value in child.attrib.iteritems():
+        for key, value in child.attrib.items():
             if key == attr_name:
                 return value
 
@@ -83,7 +83,7 @@ class ReportParser(object):
 
     @staticmethod
     def action_check_child(child, attr_name):
-        for key, value in child.attrib.iteritems():
+        for key, value in child.attrib.items():
             if key == attr_name:
                 return value
 
