@@ -1,4 +1,4 @@
-FROM python:2
+FROM python:3
 LABEL maintainer="Ilya Bumarskov <bumarskov@gmail.com>"
 
 COPY etc /testrail_reporter/etc
