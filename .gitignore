@@ -13,5 +13,7 @@ tmp/
 .idea/
 
 # Distribution / packaging
+build/
+dist/
 *.egg-info/
 *.egg

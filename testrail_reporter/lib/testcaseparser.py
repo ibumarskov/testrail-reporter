@@ -1,7 +1,7 @@
 import copy
 import yaml
 
-from lib.actions import perform_actions
+from testrail_reporter.lib.actions import perform_actions
 
 
 class TestCaseParser(object):

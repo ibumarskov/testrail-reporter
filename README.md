@@ -14,6 +14,10 @@ The testrail-reporter repository contains scripts that allow to report test resu
 ## Know issues and limitations:
 - Nested sections aren't supported
 
+## Installation
+
+    python3 setup.py install
+
 ## Usage
 Set the TestRail parameters before using the script:
 
@@ -23,12 +27,12 @@ Set the TestRail parameters before using the script:
 
 ### Publish results
 
-    usage: reporter.py publish [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
-                               [-s TR_SUITE] [-m TR_MILESTONE] [-c TR_CONF]
-                               [--remove-untested]
-                               [--result-attrs TR_RESULT_ATTRS]
-                               [--result-map TR_RESULT_MAP]
-                               Tempest report
+    usage: testrail-reporter publish [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
+                                     [-s TR_SUITE] [-m TR_MILESTONE] [-c TR_CONF]
+                                     [--remove-untested]
+                                     [--result-attrs TR_RESULT_ATTRS]
+                                     [--result-map TR_RESULT_MAP]
+                                     Tempest report
     
     positional arguments:
       Tempest report        Path to tempest report (.xml)
@@ -50,9 +54,9 @@ Set the TestRail parameters before using the script:
 
 ### Update test suite
 
-    usage: reporter.py update [-h] [-p TR_PROJECT] [-s TR_SUITE]
-                              [--tc-map TESTCASE_MAP]
-                              List of test cases
+    usage: testrail-reporter update [-h] [-p TR_PROJECT] [-s TR_SUITE]
+                                    [--tc-map TESTCASE_MAP]
+                                    List of test cases
     
     positional arguments:
       List of test cases    Path to file with list of tests.
@@ -66,8 +70,8 @@ Set the TestRail parameters before using the script:
 
 ### Analyze results
 
-    usage: reporter.py analyze [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
-                               Check list
+    usage: testrail-reporter analyze [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
+                                     Check list
     
     positional arguments:
       Check list     Path to check list (.yml)
@@ -104,7 +108,7 @@ if sections are determined, they must contains following attributes:
 - *status_id* (optionally) - set custom status
 - *actions* - list of action for string generation. Description of supported actions can be found [below](#actions).
 
-Example of template: *etc/maps/pytest/result_template.yaml*
+Example of template: *testrail_reporter/etc/maps/pytest/result_template.yaml*
 
 ### Template for test cases 
 
@@ -125,7 +129,7 @@ This template is used for convert name of custom attribute to id.
 
 - *attributes2id* - contains list with name of custom case attributes required to be converted to id.
 
-Example of template: *etc/attrs2id.yaml*
+Example of template: *testrail_reporter/etc/attrs2id.yaml*
 
 ### Actions for string generation {#actions}
 
@@ -159,10 +163,7 @@ To run testrail_reporter against TestRail using docker image:
 `docker run -v '<path_to_results>:/tmp/report.xml' -e TESTRAIL_URL="<url>" -e TESTRAIL_USER="<user>" -e TESTRAIL_PASSWORD="<password>" testrail-reporter:<tagname> python reporter.py publish /tmp/report.xml -p "<TestRail project>" -t "<TestRail test plan>" -r "<TestRail test run>" -s "<TestRail suite>" -c "<Configuration>" --remove-untested`
 
 ### How to build docker image
-Before build docker image from local copy of repository remove all `.*pyc` files and `__pycache__` folder:
-
-`find lib/ -name "*.pyc" -exec rm -f {} \;
-rm -rf lib/__pycache__`
+Before build docker image from local copy of repository remove all `.*pyc` files and `__pycache__` folder.
 
 Build image:
-`docker build --tag=alpha .`
+`docker build --tag=testrail-reporter:alpha .`

@@ -1,7 +1,7 @@
 import logging
 import yaml
 
-from lib.testrailproject import TestRailProject
+from testrail_reporter.lib.testrailproject import TestRailProject
 
 LOG = logging.getLogger(__name__)
 

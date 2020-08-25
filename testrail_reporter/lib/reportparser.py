@@ -3,13 +3,11 @@ import re
 import xml.etree.ElementTree as ET
 import yaml
 
-from lib.actions import perform_actions
+from testrail_reporter.lib.actions import perform_actions
 
 
 class ReportParser(object):
-    def __init__(self,
-                 tr_result_attrs='etc/tr_result_attrs.yaml',
-                 tr_result_map='etc/maps/tempest/result_template.yaml'):
+    def __init__(self, tr_result_attrs, tr_result_map):
         with open(tr_result_attrs, 'r') as stream:
             self.tr_result_attrs = yaml.safe_load(stream)
         with open(tr_result_map, 'r') as stream:
