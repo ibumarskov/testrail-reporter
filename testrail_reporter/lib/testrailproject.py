@@ -1,6 +1,6 @@
 import logging
 
-from lib.testrail import TestRailAPICalls
+from testrail_reporter.lib.testrail import TestRailAPICalls
 
 LOG = logging.getLogger(__name__)
 

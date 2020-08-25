@@ -2,7 +2,7 @@ import copy
 import logging
 import yaml
 
-from lib.testrailproject import TestRailProject
+from testrail_reporter.lib.testrailproject import TestRailProject
 
 LOG = logging.getLogger(__name__)
 
@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 class TestRailReporter:
 
     def __init__(self, url, user, password, project_name,
-                 attr2id_map='etc/attrs2id.yaml'):
+                 attr2id_map='testrail_reporter/etc/attrs2id.yaml'):
         self.project = TestRailProject(url, user, password, project_name)
         with open(attr2id_map, 'r') as stream:
             self.attr2id_map = yaml.safe_load(stream)
