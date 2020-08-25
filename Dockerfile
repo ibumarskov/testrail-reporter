@@ -1,11 +1,11 @@
 FROM python:3
 LABEL maintainer="Ilya Bumarskov <bumarskov@gmail.com>"
 
-COPY etc /testrail_reporter/etc
-COPY lib /testrail_reporter/lib
-COPY reporter.py /testrail_reporter/
-COPY requirements.txt /testrail_reporter/
+COPY testrail_reporter /testrail-reporter/testrail_reporter
+COPY README.md /testrail-reporter/
+COPY requirements.txt /testrail-reporter/
+COPY setup.py /testrail-reporter/
 
-WORKDIR /testrail_reporter
+WORKDIR /testrail-reporter
 
-RUN pip install -r requirements.txt
+RUN python3 setup.py install

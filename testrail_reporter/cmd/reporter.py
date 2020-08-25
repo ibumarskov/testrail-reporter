@@ -2,13 +2,13 @@ import argparse
 import logging
 import json
 
-from lib.config import Config
-from lib.settings import TRR_LOG_FILE, TRR_LOG_LEVEL
-from lib.reportparser import ReportParser
-from lib.testcaseparser import TestCaseParser
-from lib.testrailanalyzer import CheckListParser, TestRailAnalyzer
-from lib.testrailproject import TestRailProject
-from lib.testrailreporter import TestRailReporter
+from testrail_reporter.lib.config import Config
+from testrail_reporter.lib.settings import TRR_LOG_FILE, TRR_LOG_LEVEL
+from testrail_reporter.lib.reportparser import ReportParser
+from testrail_reporter.lib.testcaseparser import TestCaseParser
+from testrail_reporter.lib.testrailanalyzer import CheckListParser, TestRailAnalyzer
+from testrail_reporter.lib.testrailproject import TestRailProject
+from testrail_reporter.lib.testrailreporter import TestRailReporter
 
 logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s: %(message)s',
@@ -18,16 +18,16 @@ logging.basicConfig(
 LOG = logging.getLogger(__name__)
 
 
-def log_settings(args):
+def log_settings(args, config):
     LOG.debug('URL: "{0}"'.format(config.url))
     LOG.debug('User: "{0}"'.format(config.user))
     LOG.debug('Testrail Project name: "{0}"'.format(args.tr_project))
 
 
-def analyze(args):
+def analyze(args, config):
     LOG.info('========== Run analyzer ==========')
     LOG.info('Check list file: "{0}"'.format(args.check_list_path))
-    log_settings(args)
+    log_settings(args, config)
     LOG.debug('Testrail Test Plan: "{0}"'.format(args.tr_plan))
     LOG.debug('Testrail Test Run: "{0}"'.format(args.tr_run))
 
@@ -40,10 +40,10 @@ def analyze(args):
     analyzer.analyze_results(check_list_obj)
 
 
-def publish(args):
+def publish(args, config):
     LOG.info('========== Publish test results ==========')
     LOG.info('Report file: "{0}"'.format(args.report_path))
-    log_settings(args)
+    log_settings(args, config)
     LOG.debug('Testrail Test Plan: "{0}"'.format(args.tr_plan))
     LOG.debug('Testrail Test Run: "{0}"'.format(args.tr_run))
     LOG.debug('Suite name: "{0}"'.format(args.tr_suite))
@@ -68,10 +68,10 @@ def publish(args):
                              remove_untested=args.remove_untested)
 
 
-def update_suite(args):
+def update_suite(args, config):
     LOG.info('========== Update Test Suite ==========')
     LOG.info('List of tests: "{0}"'.format(args.tc_list_path))
-    log_settings(args)
+    log_settings(args, config)
     LOG.debug('Suite name: "{0}"'.format(args.tr_suite))
 
     tc_parser = TestCaseParser(case_map=args.testcase_map)
@@ -85,7 +85,8 @@ def update_suite(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='reporter.py')
+    config = Config()
+    parser = argparse.ArgumentParser(prog='testrail-reporter')
     subparsers = parser.add_subparsers(help='additional help')
     # ================================ analyze ================================
     parser_a = subparsers.add_parser(
@@ -146,12 +147,12 @@ def main():
     )
     parser_b.add_argument(
         '--result-attrs', dest='tr_result_attrs',
-        default='etc/tr_result_attrs.yaml',
+        default='testrail_reporter/etc/tr_result_attrs.yaml',
         help='Custom result attributes'
     )
     parser_b.add_argument(
         '--result-map', dest='tr_result_map',
-        default='etc/maps/tempest/result_template.yaml',
+        default='testrail_reporter/etc/maps/tempest/result_template.yaml',
         help='Custom result map'
     )
     parser_b.set_defaults(func=publish)
@@ -172,15 +173,17 @@ def main():
     )
     parser_c.add_argument(
         '--tc-map', dest='testcase_map',
-        default='etc/maps/tempest/case_template.yaml',
+        default='testrail_reporter/etc/maps/tempest/case_template.yaml',
         help='TestCase map'
     )
     parser_c.set_defaults(func=update_suite)
     # =========================================================================
-    args = parser.parse_args()
-    args.func(args)
+    try:
+        args = parser.parse_args()
+        args.func(args, config)
+    except AttributeError:
+        parser.print_help()
 
 
 if __name__ == "__main__":
-    config = Config()
     main()
