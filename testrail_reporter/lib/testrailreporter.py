@@ -1,5 +1,6 @@
 import copy
 import logging
+import pkg_resources
 import yaml
 
 from testrail_reporter.lib.testrailproject import TestRailProject
@@ -9,9 +10,12 @@ LOG = logging.getLogger(__name__)
 
 class TestRailReporter:
 
-    def __init__(self, url, user, password, project_name,
-                 attr2id_map='testrail_reporter/etc/attrs2id.yaml'):
+    def __init__(self, url, user, password, project_name, attr2id_map=None):
         self.project = TestRailProject(url, user, password, project_name)
+        if not attr2id_map:
+            rpath = '/'.join(('etc', 'attrs2id.yaml'))
+            attr2id_map = pkg_resources.resource_filename("testrail_reporter",
+                                                          rpath)
         with open(attr2id_map, 'r') as stream:
             self.attr2id_map = yaml.safe_load(stream)
 

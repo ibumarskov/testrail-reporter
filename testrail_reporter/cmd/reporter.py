@@ -1,6 +1,7 @@
 import argparse
-import logging
 import json
+import logging
+import pkg_resources
 
 from testrail_reporter.lib.config import Config
 from testrail_reporter.lib.settings import TRR_LOG_FILE, TRR_LOG_LEVEL
@@ -49,13 +50,26 @@ def publish(args, config):
     LOG.debug('Testrail Test Run: "{0}"'.format(args.tr_run))
     LOG.debug('Suite name: "{0}"'.format(args.tr_suite))
     LOG.debug('Milestone: "{0}"'.format(args.tr_milestone))
+
+    if not args.tr_result_attrs:
+        rpath = '/'.join(('etc', 'tr_result_attrs.yaml'))
+        tr_result_attrs = pkg_resources.resource_filename("testrail_reporter",
+                                                          rpath)
+    else:
+        tr_result_attrs = args.tr_result_attrs
+    if not args.tr_result_map:
+        rpath = '/'.join(('etc/maps', args.map, 'result_template.yaml'))
+        tr_result_map = pkg_resources.resource_filename("testrail_reporter",
+                                                        rpath)
+    else:
+        tr_result_map = args.tr_result_attrs
     if args.tr_conf is not None:
         tr_conf = json.loads(args.tr_conf.replace("\'", '"'))
     else:
         tr_conf = None
 
-    report = ReportParser(tr_result_attrs=args.tr_result_attrs,
-                          tr_result_map=args.tr_result_map)
+    report = ReportParser(tr_result_attrs=tr_result_attrs,
+                          tr_result_map=tr_result_map)
     results = report.get_result_list(args.report_path)
 
     reporter = TestRailReporter(url=config.url,
@@ -75,7 +89,21 @@ def update_suite(args, config):
     log_settings(args, config)
     LOG.debug('Suite name: "{0}"'.format(args.tr_suite))
 
-    tc_parser = TestCaseParser(case_map=args.testcase_map)
+    if not args.tr_case_attrs:
+        rpath = '/'.join(('etc', 'tr_case_attrs.yaml'))
+        tr_case_attrs = pkg_resources.resource_filename("testrail_reporter",
+                                                        rpath)
+    else:
+        tr_case_attrs = args.tr_case_attrs
+    if not args.tr_case_map:
+        rpath = '/'.join(('etc/maps', args.map, 'case_template.yaml'))
+        tr_case_map = pkg_resources.resource_filename("testrail_reporter",
+                                                      rpath)
+    else:
+        tr_case_map = args.tr_result_attrs
+
+    tc_parser = TestCaseParser(tr_case_attrs=tr_case_attrs,
+                               tr_case_map=tr_case_map)
     tc_list = tc_parser.get_tc_list(args.tc_list_path)
 
     reporter = TestRailReporter(url=config.url,
@@ -148,13 +176,21 @@ def main():
     )
     parser_b.add_argument(
         '--result-attrs', dest='tr_result_attrs',
-        default='testrail_reporter/etc/tr_result_attrs.yaml',
-        help='Custom result attributes'
+        default=None,
+        help='Set path to config file with custom result attributes '
+             '(.yaml format).'
+    )
+    parser_b.add_argument(
+        '--map', dest='map',
+        default='tempest',
+        help='Use predefined map for parsing attributes. Supported values:'
+             'tempest, pytest'
     )
     parser_b.add_argument(
         '--result-map', dest='tr_result_map',
-        default='testrail_reporter/etc/maps/tempest/result_template.yaml',
-        help='Custom result map'
+        default=None,
+        help='Set path to config file with custom result map. '
+             'Note: this parameter overrides predefined map parameter.'
     )
     parser_b.set_defaults(func=publish)
     # ================================ update ================================
@@ -172,18 +208,28 @@ def main():
         '-s', dest='tr_suite', default=None,
         help='TestRail Suite name.'
     )
+    parser_b.add_argument(
+        '--case-attrs', dest='tr_case_attrs',
+        default=None,
+        help='Set path to config file with custom case attributes '
+             '(.yaml format).'
+    )
     parser_c.add_argument(
-        '--tc-map', dest='testcase_map',
-        default='testrail_reporter/etc/maps/tempest/case_template.yaml',
-        help='TestCase map'
+        '--map', dest='map',
+        default='tempest',
+        help='Use predefined map for parsing case attributes. Supported '
+             'values: tempest, pytest'
+    )
+    parser_c.add_argument(
+        '--tc-map', dest='tr_case_map',
+        default=None,
+        help='Set path to config file with custom case map. '
+             'Note: this parameter overrides predefined map parameter.'
     )
     parser_c.set_defaults(func=update_suite)
     # =========================================================================
-    try:
-        args = parser.parse_args()
-        args.func(args, config)
-    except AttributeError:
-        parser.print_help()
+    args = parser.parse_args()
+    args.func(args, config)
 
 
 if __name__ == "__main__":
