@@ -155,7 +155,8 @@ class TestRailReporter:
 
     def publish_results(self, results, plan_name, suite_name, run_name,
                         milestone=None, configuration=None,
-                        update_existing=False, remove_untested=False):
+                        update_existing=False, remove_untested=False,
+                        remove_skipped=False):
         suite = self.project.get_suite_by_name(suite_name)
         plans_list = self.project.get_plans_project()
         plan = None
@@ -227,10 +228,15 @@ class TestRailReporter:
         self.project.add_results(run['id'], {'results': results['results']})
         LOG.info("Results were uploaded.")
 
+        rm_statuses = []
+        if remove_skipped:
+            rm_statuses.append("skipped")
         if remove_untested:
-            LOG.info("Remove untested tests.")
-            untested_tests = self.get_untested_tests(run['id'])
-            case_ids = list(map(lambda a: a['case_id'], untested_tests))
+            rm_statuses.append("untested")
+        if rm_statuses:
+            LOG.info("Remove tests with statuses: {}".format(rm_statuses))
+            rm_tests = self.get_tests_by_status(run['id'], rm_statuses)
+            case_ids = list(map(lambda a: a['case_id'], rm_tests))
             data = {'include_all': False,
                     'case_ids': case_ids}
             if configuration:
@@ -238,8 +244,9 @@ class TestRailReporter:
             self.project.update_plan_entry(plan['id'], plan_entry['id'], data)
         LOG.info("Completed.")
 
-    def get_untested_tests(self, run_id):
+    def get_tests_by_status(self, run_id, statuses):
         status_ids = list(map(lambda a: a['id'], self.project.statuses))
-        status_ids.remove(self.project.get_status_by_label("untested"))
+        for status in statuses:
+            status_ids.remove(self.project.get_status_by_label(status))
         tests_filter = self.project.get_tests_filter(status_id=status_ids)
         return self.project.get_tests(run_id, filter=tests_filter)

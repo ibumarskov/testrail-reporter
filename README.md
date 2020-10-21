@@ -47,6 +47,7 @@ Set the TestRail parameters before using the script:
       -c TR_CONF            Set configuration for test entry (Test Run). Example:
                             -c "{'Operating Systems':'Ubuntu 18.04'}"
       --remove-untested     Remove untested cases from Test Run
+      --remove-skipped      Remove skipped cases from Test Run
       --result-attrs TR_RESULT_ATTRS
                             Custom result attributes
       --result-map TR_RESULT_MAP

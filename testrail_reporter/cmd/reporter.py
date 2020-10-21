@@ -80,7 +80,8 @@ def publish(args, config):
                              milestone=args.tr_milestone,
                              configuration=tr_conf,
                              update_existing=True,
-                             remove_untested=args.remove_untested)
+                             remove_untested=args.remove_untested,
+                             remove_skipped=args.remove_skipped)
 
 
 def update_suite(args, config):
@@ -173,6 +174,11 @@ def main():
         '--remove-untested', dest='remove_untested', action="store_true",
         default=False,
         help='Remove untested cases from Test Run'
+    )
+    parser_b.add_argument(
+        '--remove-skipped', dest='remove_skipped', action="store_true",
+        default=False,
+        help='Remove skipped cases from Test Run'
     )
     parser_b.add_argument(
         '--result-attrs', dest='tr_result_attrs',
