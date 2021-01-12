@@ -1,6 +1,7 @@
 import logging
 import yaml
 
+from testrail_reporter.lib.exceptions import NotFound
 from testrail_reporter.lib.testrailproject import TestRailProject
 
 LOG = logging.getLogger(__name__)
@@ -15,9 +16,9 @@ class CheckListParser(object):
     def _check_structure(self):
         for test in self.attrs['tests']:
             if 'title' not in test:
-                raise Exception("title not found")
+                raise NotFound("Title attribute")
             if 'status' not in test:
-                raise Exception("status not found")
+                raise NotFound("Status attribute")
             if 'errors' not in test:
                 test['errors'] = None
             if 'defects' not in test:

@@ -3,6 +3,7 @@ import logging
 import pkg_resources
 import yaml
 
+from testrail_reporter.lib.exceptions import NotFound, Conflict
 from testrail_reporter.lib.testrailproject import TestRailProject
 
 LOG = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ class TestRailReporter:
             if result['test_id'] == tr_res['title']:
                 result['test_id'] = tr_res['id']
                 return True
-        raise Exception("Can't find test: {}".format(result['test_id']))
+        raise NotFound("Can't find test: {}".format(result['test_id']))
 
     @staticmethod
     def match_group2tests(group, tr_tests):
@@ -42,24 +43,24 @@ class TestRailReporter:
             if test_case['type_id'] == i['name']:
                 test_case['type_id'] = i['id']
                 return True
-        raise Exception("Can't find Case Type '{}'"
-                        "".format(test_case['type_id']))
+        raise NotFound("Can't find Case Type '{}'"
+                       "".format(test_case['type_id']))
 
     def _convert_milestone2id(self, test_case):
         for i in self.project.milestones:
             if test_case['milestone_id'] == i['name']:
                 test_case['milestone_id'] = i['id']
                 return True
-        raise Exception("Can't find Milestone '{}'"
-                        "".format(test_case['milestone_id']))
+        raise NotFound("Can't find Milestone '{}'"
+                       "".format(test_case['milestone_id']))
 
     def _convert_priority2id(self, test_case):
         for p in self.project.priorities:
             if test_case['priority_id'] == p['name']:
                 test_case['priority_id'] = p['id']
                 return True
-        raise Exception("Can't find Priority '{}'"
-                        "".format(test_case['priority_id']))
+        raise NotFound("Can't find Priority '{}'"
+                       "".format(test_case['priority_id']))
 
     def convert_customfield2id(self, tc, field_name):
         items = None
@@ -68,7 +69,7 @@ class TestRailReporter:
                 items = field['configs'][0]['options']['items']
                 break
         if not items:
-            raise Exception("Can't find custom filed: {}".format(field_name))
+            raise NotFound("Can't find custom filed: {}".format(field_name))
         for item in items.split('\n'):
             i, name = item.split(',')
             if tc[field_name] == name.strip():
@@ -80,15 +81,15 @@ class TestRailReporter:
             if result['status_id'].lower() == s['label'].lower():
                 result['status_id'] = s['id']
                 return True
-        raise Exception("Can't find status: {}".format(result['status_id']))
+        raise NotFound("Can't find status: {}".format(result['status_id']))
 
     def get_section_id(self, name, suite):
         sections = self.project.get_sections_project(suite['id'])
         for i in sections:
             if name == i['name']:
                 return i['id']
-        raise Exception("Can't find Section '{}' in Test Suite '{}'"
-                        "".format(name, suite['name']))
+        raise NotFound("Can't find Section '{}' in Test Suite '{}'"
+                       "".format(name, suite['name']))
 
     def get_config_id(self, group, conf):
         for tr_group in self.project.configurations:
@@ -96,20 +97,20 @@ class TestRailReporter:
                 for tr_conf in tr_group["configs"]:
                     if tr_conf["name"] == conf:
                         return tr_conf["id"]
-        raise Exception("Can't find configuration for plan entry:\n"
-                        "{}:{}".format(group, conf))
+        raise NotFound("Can't find configuration for plan entry:\n"
+                       "{}:{}".format(group, conf))
 
     def get_milestone_id(self, name):
         for m in self.project.milestones:
             if m['name'] == name:
                 return m['id']
-        raise Exception("Can't find milestone: {}".format(name))
+        raise NotFound("Can't find milestone: {}".format(name))
 
     def update_test_suite(self, name, tc_list):
         # Check suite name and create if needed:
         try:
             suite = self.project.get_suite_by_name(name)
-        except Exception:
+        except NotFound:
             suite_data = {"name": name}
             suite = self.project.add_suite_project(suite_data)
         suite_id = suite['id']
@@ -121,7 +122,7 @@ class TestRailReporter:
             if isinstance(section_id, str):
                 try:
                     section_id = self.get_section_id(section_id, suite)
-                except Exception:
+                except NotFound:
                     section_data = {'name': section_id,
                                     'suite_id': suite_id}
                     self.project.add_section_project(section_data)
@@ -185,9 +186,9 @@ class TestRailReporter:
                 run_present = True
                 plan_entry = r
                 if not update_existing:
-                    raise Exception("Test Run {} already present. Link: {}"
-                                    "".format(run_name,
-                                              plan_entry['runs'][0]['url']))
+                    raise Conflict("Test Run {} already present. Link: {}"
+                                   "".format(run_name,
+                                             plan_entry['runs'][0]['url']))
                 else:
                     LOG.warning("Test Run {} will be overridden".format(
                         plan_entry['runs'][0]['url']))
