@@ -214,7 +214,7 @@ def main():
         '-s', dest='tr_suite', default=None,
         help='TestRail Suite name.'
     )
-    parser_b.add_argument(
+    parser_c.add_argument(
         '--case-attrs', dest='tr_case_attrs',
         default=None,
         help='Set path to config file with custom case attributes '
