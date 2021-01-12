@@ -115,6 +115,11 @@ class TestRailReporter:
             suite = self.project.add_suite_project(suite_data)
         suite_id = suite['id']
 
+        # Exclude existed cases for fast processing
+        cases = self.project.get_cases_project(suite_id=suite_id)
+        casetitels = [x['title'] for x in cases]
+        tc_list = [tc for tc in tc_list if tc['title'] not in casetitels]
+
         tr_cases = {}
         for tc in tc_list:
             # Remove section_id from dict and convert it to id if necessary
