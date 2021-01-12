@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 import yaml
 
 from testrail_reporter.lib.actions import perform_actions
+from testrail_reporter.lib.exceptions import UnknownAction
 
 
 class ReportParser(object):
@@ -138,5 +139,5 @@ class ReportParser(object):
                                                         nested['xml_actions'],
                                                         res=res)
             else:
-                raise Exception("Unknow action: {}".format(action))
+                raise UnknownAction(action=action)
         return res
