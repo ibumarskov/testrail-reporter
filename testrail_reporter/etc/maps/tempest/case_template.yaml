@@ -7,6 +7,7 @@ section:
         Glance: "^tempest.api.image."
         Keystone: "^tempest.api.identity."
         Neutron: "^tempest.api.network."
+        Neutron plugin: "^neutron_tempest_plugin."
         Nova: "^tempest.api.compute."
         Cinder: "^tempest.api.volume."
         Swift: "^tempest.api.object_storage."
@@ -20,3 +21,4 @@ section:
         Horizon: "^tempest_horizon."
         Octavia: "^octavia_tempest_plugin."
         Tungsten: "^tungsten_tempest_plugin."
+        Patrole: "^patrole_tempest_plugin."

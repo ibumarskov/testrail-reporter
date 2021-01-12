@@ -3,7 +3,7 @@ title: ''
 section_id: 'Test Cases'
 type_id: 'Automated'
 priority_id: ''
-milestone_id: 'MCP1.1'
+milestone_id: 'MCP2.0'
 custom_test_case_description: ''
 custom_test_case_steps:
   - content: 'Run test'

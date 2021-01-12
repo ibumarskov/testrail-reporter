@@ -1,5 +1,6 @@
 import logging
 
+from testrail_reporter.lib.exceptions import NotFound
 from testrail_reporter.lib.testrail import TestRailAPICalls
 
 LOG = logging.getLogger(__name__)
@@ -96,7 +97,7 @@ class TestRailProject(TestRailAPICalls):
         for suite in self.get_suites_project():
             if suite['name'] == name:
                 return self.get_suite(suite_id=suite['id'])
-        raise Exception("Suite {} not found".format(name))
+        raise NotFound("Suite {}".format(name))
 
     def get_section_by_name(self, suite_id, section_name):
         for section in self.get_sections_project(suite_id=suite_id):
@@ -119,19 +120,19 @@ class TestRailProject(TestRailAPICalls):
         for plan in self.get_plans_project():
             if plan['name'] == name:
                 return self.get_plan(plan_id=plan['id'])
-        raise Exception("TestPlan {} not found".format(name))
+        raise NotFound("TestPlan {}".format(name))
 
     def get_run_by_name(self, name):
         for run in self.get_runs_project():
             if run['name'] == name:
                 return self.get_run(run_id=run['id'])
-        raise Exception("TestRun {} not found".format(name))
+        raise NotFound("TestRun {}".format(name))
 
     def get_status_by_label(self, label):
         for status in self.statuses:
             if status['label'].lower() == label.lower():
                 return status['id']
-        raise Exception("Status {} not found".format(label))
+        raise NotFound("Status {}".format(label))
 
     @staticmethod
     def result_data(status_id, comment=None, version=None, elapsed=None,
