@@ -3,3 +3,4 @@ pyyaml
 tox
 wheel
 requests
+progress

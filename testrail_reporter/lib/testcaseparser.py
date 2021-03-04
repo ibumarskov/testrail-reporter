@@ -1,6 +1,6 @@
 import copy
 import yaml
-
+import re
 from testrail_reporter.lib.actions import perform_actions
 
 
@@ -25,5 +25,22 @@ class TestCaseParser(object):
                 i, self.tr_case_map['section']['actions'])
             if section_id:
                 tc['section_id'] = section_id
+
+            pattern = r"([\b\w\.]+)\."
+            m_tg = re.match(pattern, tc['title'])
+            tc['custom_test_group'] = m_tg.group(1)
+
+            pattern = r".+id-([\b\w\-]+)"
+            m_id = re.match(pattern, tc['title'])
+            try:
+                tc['custom_report_label'] = m_id.group(1)
+            except AttributeError:
+                print("custom_report_label is absent")
+                print(tc['title'])
+
+            # pattern = r".+\.(\w+\[[\w\d\-,]+\])"
+            pattern = r".+\.(\w+[\w\d\-,\[\]]+)"
+            m_dscr = re.match(pattern, tc['title'])
+            tc['custom_test_case_description'] = m_dscr.group(1)
             tc_list.append(tc)
         return tc_list
