@@ -3,6 +3,8 @@ import logging
 import pkg_resources
 import yaml
 
+from progress.bar import Bar
+
 from testrail_reporter.lib.exceptions import NotFound, Conflict
 from testrail_reporter.lib.testrailproject import TestRailProject
 
@@ -73,6 +75,10 @@ class TestRailReporter:
         for item in items.split('\n'):
             i, name = item.split(',')
             if tc[field_name] == name.strip():
+                try:
+                    i = int(i)
+                except ValueError:
+                    LOG.debug("Leave current type: {}".format(type(i)))
                 tc[field_name] = i
                 break
 
@@ -106,7 +112,14 @@ class TestRailReporter:
                 return m['id']
         raise NotFound("Can't find milestone: {}".format(name))
 
-    def update_test_suite(self, name, tc_list):
+    @staticmethod
+    def get_case_by_title(cases, title):
+        for c in cases:
+            if c['title'] == title:
+                return c
+        return None
+
+    def update_test_suite(self, name, tc_list, update_cases=False):
         # Check suite name and create if needed:
         try:
             suite = self.project.get_suite_by_name(name)
@@ -116,10 +129,12 @@ class TestRailReporter:
         suite_id = suite['id']
 
         # Exclude existing cases for fast processing
-        cases = self.project.get_cases_project(suite_id=suite_id)
-        casetitels = [x['title'] for x in cases]
-        tc_list = [tc for tc in tc_list if tc['title'] not in casetitels]
+        if not update_cases:
+            cases = self.project.get_cases_project(suite_id=suite_id)
+            casetitels = [x['title'] for x in cases]
+            tc_list = [tc for tc in tc_list if tc['title'] not in casetitels]
 
+        bar = Bar('Processing', max=len(tc_list))
         tr_cases = {}
         for tc in tc_list:
             # Remove section_id from dict and convert it to id if necessary
@@ -149,15 +164,28 @@ class TestRailReporter:
                                 "attributes".format(custom))
 
             if section_id not in tr_cases:
-                tr_cases[section_id] = {}
-                tr_cases[section_id]['cases'] = \
+                tr_cases[section_id] = \
                     self.project.get_cases_project(suite_id, section_id)
-                tr_cases[section_id]['titles'] = []
-                for tr_tc in tr_cases[section_id]['cases']:
-                    tr_cases[section_id]['titles'].append(tr_tc['title'])
 
-            if tc['title'] not in tr_cases[section_id]['titles']:
+            c = self.get_case_by_title(tr_cases[section_id],
+                                       tc['title'])
+            if not c:
+                LOG.warning("Add TC: {}".format(c['title']))
                 self.project.add_case(section_id, tc)
+            elif update_cases:
+                req_update = False
+                for key, value in tc.items():
+                    if not c.get(key) or c.get(key) != value:
+                        LOG.debug("Field '{key}' will be updated: '{cval}' > '"
+                                  "{value}'".format(key=key, value=value,
+                                                    cval=c.get(key)))
+                        req_update = True
+                if req_update:
+                    LOG.info("Update TC: {}".format(c['title']))
+                    self.project.update_case(c['id'], tc)
+            else:
+                pass
+            bar.next()
 
     def publish_results(self, results, plan_name, suite_name, run_name,
                         milestone=None, configuration=None,
