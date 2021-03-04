@@ -111,7 +111,8 @@ def update_suite(args, config):
                                 user=config.user,
                                 password=config.password,
                                 project_name=args.tr_project)
-    reporter.update_test_suite(args.tr_suite, tc_list)
+    reporter.update_test_suite(args.tr_suite, tc_list,
+                               update_cases=args.update_cases)
 
 
 def main():
@@ -213,6 +214,11 @@ def main():
     parser_c.add_argument(
         '-s', dest='tr_suite', default=None,
         help='TestRail Suite name.'
+    )
+    parser_c.add_argument(
+        '--update-cases', dest='update_cases', action="store_true",
+        default=False,
+        help='Update fields for existing cases'
     )
     parser_c.add_argument(
         '--case-attrs', dest='tr_case_attrs',
