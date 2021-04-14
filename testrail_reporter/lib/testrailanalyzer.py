@@ -3,6 +3,7 @@ import logging
 import sys
 
 import yaml
+import re
 
 from testrail_reporter.lib.exceptions import NotFound
 from testrail_reporter.lib.testrailproject import TestRailProject
@@ -78,7 +79,9 @@ class TestRailAnalyzer:
                     LOG.warning("Test results for {} don't match know issue."
                                 "".format(test["title"]))
                     return False
-        msg = "Set by result analyzer"
+        msg = "Set by result analyzer {comment}".format(
+            comment=check_obj.get("comment", "")
+        )
         status = self.project.get_status_by_label(check_obj['status'])
         defects = check_obj['defects']
         data = self.project.result_data(status, comment=msg, defects=defects)
@@ -86,9 +89,21 @@ class TestRailAnalyzer:
         LOG.info("Test '{}' set to {}".format(test["title"],
                                               check_obj['status']))
 
+    @staticmethod
+    def _match_found(pattern, text):
+        try:
+            return re.search(pattern, text)
+        except re.error as e:
+            return pattern == text
+
     def analyze_results(self, check_list_obj):
         isinstance(check_list_obj, CheckListParser)
         for test in self.tests:
             for check_obj in check_list_obj.attrs['tests']:
-                if test['title'] == check_obj['title']:
-                    self._check_errors(check_obj, test)
+                if check_obj.get('title_type', '') == 'regexp':
+                    if not self._match_found(check_obj['title'],
+                                             test['title']):
+                        continue
+                if test['title'] != check_obj['title']:
+                    continue
+                self._check_errors(check_obj, test)
