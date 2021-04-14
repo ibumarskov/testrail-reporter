@@ -2,6 +2,7 @@ import logging
 import sys
 
 import yaml
+import re
 
 from testrail_reporter.lib.exceptions import NotFound
 from testrail_reporter.lib.testrailproject import TestRailProject
@@ -84,9 +85,17 @@ class TestRailAnalyzer:
         LOG.info("Test '{}' set to {}".format(test["title"],
                                               check_obj['status']))
 
+    @staticmethod
+    def _match_found(pattern, text):
+        try:
+            return re.search(pattern, text)
+        except re.error as e:
+            return pattern == text
+
     def analyze_results(self, check_list_obj):
         isinstance(check_list_obj, CheckListParser)
         for check_obj in check_list_obj.attrs['tests']:
             for test in self.tests:
-                if test['title'] == check_obj['title']:
+                if self._match_found(check_obj['title'],
+                                     test['title']):
                     self._check_errors(check_obj, test)
