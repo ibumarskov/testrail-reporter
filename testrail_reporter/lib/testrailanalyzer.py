@@ -1,5 +1,6 @@
 import logging
 import yaml
+import re
 
 from testrail_reporter.lib.exceptions import NotFound
 from testrail_reporter.lib.testrailproject import TestRailProject
@@ -72,5 +73,5 @@ class TestRailAnalyzer:
         isinstance(check_list_obj, CheckListParser)
         for check_obj in check_list_obj.attrs['tests']:
             for test in self.tests:
-                if test['title'] == check_obj['title']:
+                if re.search(check_obj['title'], test['title']):
                     self._check_errors(check_obj, test)
