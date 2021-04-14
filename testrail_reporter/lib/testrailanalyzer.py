@@ -2,6 +2,7 @@ import logging
 import sys
 
 import yaml
+import re
 
 from testrail_reporter.lib.exceptions import NotFound
 from testrail_reporter.lib.testrailproject import TestRailProject
@@ -66,15 +67,15 @@ class TestRailAnalyzer:
         if check_obj['errors']:
             for err in check_obj['errors']:
                 if not current_res['comment']:
-                    LOG.warn("Test result for {} doesn't contain any log."
-                             "".format(test["title"]))
+                    LOG.warning("Test result for {} doesn't contain any log."
+                                "".format(test["title"]))
                     return False
                 if err in current_res['comment']:
                     pass
                 else:
                     LOG.info("Can't find string: {}".format(err))
-                    LOG.warn("Test results for {} don't match know issue."
-                             "".format(test["title"]))
+                    LOG.warning("Test results for {} don't match know issue."
+                                "".format(test["title"]))
                     return False
         msg = "Set by result analyzer"
         status = self.project.get_status_by_label(check_obj['status'])
@@ -84,9 +85,29 @@ class TestRailAnalyzer:
         LOG.info("Test '{}' set to {}".format(test["title"],
                                               check_obj['status']))
 
+    @staticmethod
+    def _match_found(pattern, text):
+        try:
+            return re.search(pattern, text)
+        except re.error as e:
+            return pattern == text
+
     def analyze_results(self, check_list_obj):
         isinstance(check_list_obj, CheckListParser)
         for check_obj in check_list_obj.attrs['tests']:
             for test in self.tests:
                 if test['title'] == check_obj['title']:
                     self._check_errors(check_obj, test)
+
+        # # Check regexp-style titles
+        regexp_obj = [
+            check_obj
+            for check_obj in check_list_obj.attrs['tests']
+            if check_obj.get('title_type', '') == 'regexp'
+        ]
+        for check_obj in regexp_obj:
+            for test in self.tests:
+                if not self._match_found(check_obj['title'], test['title']):
+                    continue
+                LOG.debug(f"Found next test by regexp {test['title']}")
+                self._check_errors(check_obj, test)
