@@ -3,6 +3,7 @@ import logging
 import sys
 
 import yaml
+import re
 
 from testrail_reporter.lib.exceptions import NotFound
 from testrail_reporter.lib.testrailproject import TestRailProject
@@ -86,9 +87,30 @@ class TestRailAnalyzer:
         LOG.info("Test '{}' set to {}".format(test["title"],
                                               check_obj['status']))
 
+    @staticmethod
+    def _match_found(pattern, text):
+        try:
+            return re.search(pattern, text)
+        except re.error as e:
+            return pattern == text
+
     def analyze_results(self, check_list_obj):
         isinstance(check_list_obj, CheckListParser)
         for test in self.tests:
             for check_obj in check_list_obj.attrs['tests']:
                 if test['title'] == check_obj['title']:
                     self._check_errors(check_obj, test)
+
+        # # Check regexp-style titles
+        regexp_obj = [
+            check_obj
+            for check_obj in check_list_obj.attrs['tests']
+            if check_obj.get('title_type', '') == 'regexp'
+        ]
+        for check_obj in regexp_obj:
+            for test in self.tests:
+                if not self._match_found(check_obj['title'], test['title']):
+                    continue
+                LOG.debug("Found next test by regexp {test}".format(
+                    test=test['title']))
+                self._check_errors(check_obj, test)
