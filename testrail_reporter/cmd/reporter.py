@@ -81,7 +81,8 @@ def publish(args, config):
                              configuration=tr_conf,
                              update_existing=True,
                              remove_untested=args.remove_untested,
-                             remove_skipped=args.remove_skipped)
+                             remove_skipped=args.remove_skipped,
+                             limit=args.limit)
 
 
 def update_suite(args, config):
@@ -169,6 +170,11 @@ def main():
         '-c', dest='tr_conf', default=None,
         help="Set configuration for test entry (Test Run). "
              "Example: -c \"{'Operating Systems':'Ubuntu 18.04'}\""
+    )
+    parser_b.add_argument(
+        '--limit', dest='limit', action="store_true",
+        default=100000,
+        help='Limit the length of the comments in bytes'
     )
     parser_b.add_argument(
         '--remove-untested', dest='remove_untested', action="store_true",

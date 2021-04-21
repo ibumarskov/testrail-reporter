@@ -46,6 +46,7 @@ Set the TestRail parameters before using the script:
       -m TR_MILESTONE       TestRail milestone.
       -c TR_CONF            Set configuration for test entry (Test Run). Example:
                             -c "{'Operating Systems':'Ubuntu 18.04'}"
+      --limit               Limit the length of the comments in bytes
       --remove-untested     Remove untested cases from Test Run
       --remove-skipped      Remove skipped cases from Test Run
       --result-attrs TR_RESULT_ATTRS

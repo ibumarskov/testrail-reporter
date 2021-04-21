@@ -162,7 +162,7 @@ class TestRailReporter:
     def publish_results(self, results, plan_name, suite_name, run_name,
                         milestone=None, configuration=None,
                         update_existing=False, remove_untested=False,
-                        remove_skipped=False):
+                        remove_skipped=False, limit=0):
         suite = self.project.get_suite_by_name(suite_name)
         plans_list = self.project.get_plans_project()
         plan = None
@@ -224,6 +224,14 @@ class TestRailReporter:
                 self._convert_test2id(res, tr_tests)
             if isinstance(res['status_id'], str):
                 self._convert_status2id(res)
+            if limit and len(res['comment']) > limit:
+                LOG.info("Test {}: cutting the length of the comments to {} "
+                         "bytes due to capacity limit."
+                         "".format(res['test_id'], limit))
+                lim = int(limit/2)
+                separator = "< ----- logs were omitted due to limit ----- >"
+                res['comment'] = "\n".join([res['comment'][:lim], separator,
+                                            res['comment'][-lim:]])
 
         for res in results['results_setup']:
             if isinstance(res['status_id'], str):
