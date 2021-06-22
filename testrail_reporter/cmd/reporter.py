@@ -172,7 +172,7 @@ def main():
              "Example: -c \"{'Operating Systems':'Ubuntu 18.04'}\""
     )
     parser_b.add_argument(
-        '--limit', dest='limit', default=100000,
+        '--limit', dest='limit', default=100000, type=int,
         help='Limit the length of the comments in bytes'
     )
     parser_b.add_argument(
