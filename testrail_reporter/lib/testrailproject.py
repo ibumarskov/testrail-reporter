@@ -1,9 +1,11 @@
 import logging
+import sys
 
 from testrail_reporter.lib.exceptions import NotFound
 from testrail_reporter.lib.testrail import TestRailAPICalls
 
 LOG = logging.getLogger(__name__)
+LOG.addHandler(logging.StreamHandler(sys.stdout))
 
 
 class TestRailProject(TestRailAPICalls):

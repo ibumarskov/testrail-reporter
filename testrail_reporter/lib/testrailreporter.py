@@ -1,5 +1,7 @@
 import copy
 import logging
+import sys
+
 import pkg_resources
 import yaml
 
@@ -7,6 +9,7 @@ from testrail_reporter.lib.exceptions import NotFound, Conflict
 from testrail_reporter.lib.testrailproject import TestRailProject
 
 LOG = logging.getLogger(__name__)
+LOG.addHandler(logging.StreamHandler(sys.stdout))
 
 
 class TestRailReporter:
@@ -203,6 +206,8 @@ class TestRailReporter:
                 run_data["config_ids"] = conf_ids
                 run_data["runs"] = [{"config_ids": conf_ids}]
             plan_entry = self.project.add_plan_entry(plan['id'], run_data)
+            LOG.info("Test Run {} has been created".format(
+                plan_entry['runs'][0]['url']))
 
         run = self.project.get_run(plan_entry['runs'][0]['id'])
         tr_tests = self.project.get_tests(run['id'])

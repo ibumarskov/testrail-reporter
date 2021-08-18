@@ -1,10 +1,13 @@
 import logging
+import sys
+
 import yaml
 
 from testrail_reporter.lib.exceptions import NotFound
 from testrail_reporter.lib.testrailproject import TestRailProject
 
 LOG = logging.getLogger(__name__)
+LOG.addHandler(logging.StreamHandler(sys.stdout))
 
 
 class CheckListParser(object):
