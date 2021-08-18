@@ -1,6 +1,8 @@
 import argparse
 import json
 import logging
+import sys
+
 import pkg_resources
 
 from testrail_reporter.lib.config import Config
@@ -18,6 +20,7 @@ logging.basicConfig(
     level=TRR_LOG_LEVEL,
 )
 LOG = logging.getLogger(__name__)
+LOG.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def log_settings(args, config):
