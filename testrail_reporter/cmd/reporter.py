@@ -35,13 +35,20 @@ def analyze(args, config):
     log_settings(args, config)
     LOG.debug('Testrail Test Plan: "{0}"'.format(args.tr_plan))
     LOG.debug('Testrail Test Run: "{0}"'.format(args.tr_run))
+    LOG.debug('Testrail configuration: "{0}'.format(args.tr_conf))
+
+    if args.tr_conf is not None:
+        tr_conf = json.loads(args.tr_conf.replace("\'", '"'))
+    else:
+        tr_conf = None
 
     check_list_obj = CheckListParser(args.check_list_path)
     project = TestRailProject(url=config.url,
                               user=config.user,
                               password=config.password,
                               project_name=args.tr_project)
-    analyzer = TestRailAnalyzer(project, args.tr_run, args.tr_plan)
+    analyzer = TestRailAnalyzer(project, args.tr_run, plan_name=args.tr_plan,
+                                configuration=tr_conf)
     analyzer.analyze_results(check_list_obj)
 
 
@@ -51,6 +58,7 @@ def publish(args, config):
     log_settings(args, config)
     LOG.debug('Testrail Test Plan: "{0}"'.format(args.tr_plan))
     LOG.debug('Testrail Test Run: "{0}"'.format(args.tr_run))
+    LOG.debug('Testrail configuration: "{0}'.format(args.tr_conf))
     LOG.debug('Suite name: "{0}"'.format(args.tr_suite))
     LOG.debug('Milestone: "{0}"'.format(args.tr_milestone))
 
@@ -140,6 +148,11 @@ def main():
     parser_a.add_argument(
         '-r', dest='tr_run', default=None,
         help='TestRail Run name.'
+    )
+    parser_a.add_argument(
+        '-c', dest='tr_conf', default=None,
+        help="Set configuration for test entry (Test Run). "
+             "Example: -c \"{'Operating Systems':'Ubuntu 18.04'}\""
     )
     parser_a.set_defaults(func=analyze)
     # ================================ publish ================================

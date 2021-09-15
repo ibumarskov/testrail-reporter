@@ -136,6 +136,21 @@ class TestRailProject(TestRailAPICalls):
                 return status['id']
         raise NotFound("Status {}".format(label))
 
+    def get_config_id(self, group, conf):
+        for tr_group in self.configurations:
+            if tr_group["name"] == group:
+                for tr_conf in tr_group["configs"]:
+                    if tr_conf["name"] == conf:
+                        return tr_conf["id"]
+        raise NotFound("Can't find configuration for plan entry:\n"
+                       "{}:{}".format(group, conf))
+
+    def get_config_ids(self, conf_dict):
+        conf_ids = []
+        for group, conf in conf_dict.items():
+            conf_ids.append(self.get_config_id(group, conf))
+        return conf_ids
+
     @staticmethod
     def result_data(status_id, comment=None, version=None, elapsed=None,
                     defects=None, assignedto_id=None):

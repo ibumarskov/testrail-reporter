@@ -30,16 +30,29 @@ class CheckListParser(object):
 
 class TestRailAnalyzer:
 
-    def __init__(self, project, test_run, test_plan=None):
+    def __init__(self, project, run_name, plan_name=None,
+                 configuration=None):
         isinstance(project, TestRailProject)
         self.project = project
-        if test_plan:
-            self.test_plan = self.project.get_plan_by_name(test_plan)
-            for run in self.test_plan['entries']:
-                if test_run == run['name']:
-                    self.test_run = self.project.get_run(run['runs'][0]['id'])
+        conf_ids = []
+        if configuration:
+            isinstance(configuration, dict)
+            conf_ids = self.project.get_config_ids(configuration)
+            conf_ids.sort()
+        self.test_run = None
+        if plan_name:
+            self.test_plan = self.project.get_plan_by_name(plan_name)
+            for entry in self.test_plan['entries']:
+                if run_name == entry['name']:
+                    for run in entry['runs']:
+                        run['config_ids'].sort()
+                        if run['config_ids'] == conf_ids:
+                            self.test_run = self.project.get_run(run['id'])
         else:
-            self.test_run = self.project.get_run_by_name(test_run)
+            self.test_run = self.project.get_run_by_name(run_name)
+        if not self.test_run:
+            raise NotFound("Can't find test run '{}' with configuration '{}'"
+                           "".format(run_name, configuration))
         self.tests = self._get_failed_tests()
 
     def _get_failed_tests(self):

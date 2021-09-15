@@ -94,15 +94,6 @@ class TestRailReporter:
         raise NotFound("Can't find Section '{}' in Test Suite '{}'"
                        "".format(name, suite['name']))
 
-    def get_config_id(self, group, conf):
-        for tr_group in self.project.configurations:
-            if tr_group["name"] == group:
-                for tr_conf in tr_group["configs"]:
-                    if tr_conf["name"] == conf:
-                        return tr_conf["id"]
-        raise NotFound("Can't find configuration for plan entry:\n"
-                       "{}:{}".format(group, conf))
-
     def get_milestone_id(self, name):
         for m in self.project.milestones:
             if m['name'] == name:
@@ -173,8 +164,8 @@ class TestRailReporter:
         conf_ids = []
         if configuration:
             isinstance(configuration, dict)
-            for k, v in configuration.items():
-                conf_ids.append(self.get_config_id(k, v))
+            conf_ids = self.project.get_config_ids(configuration)
+            conf_ids.sort()
         if milestone:
             milestone_id = self.get_milestone_id(milestone)
         for p in plans_list:
