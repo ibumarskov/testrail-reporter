@@ -8,6 +8,16 @@ LOG = logging.getLogger(__name__)
 LOG.addHandler(logging.StreamHandler(sys.stdout))
 
 
+def get_all(func, entity=None):
+    entities = []
+    response = func()
+    entities.extend(response[entity])
+    while response["_links"]["next"]:
+        response = self.client.send_get(response["_links"]["next"])
+        entities.append(response[entity])
+    return entities
+
+
 class TestRailProject(TestRailAPICalls):
     def __init__(self, url, user, password, project_name, fuse=True):
         super(TestRailProject, self).__init__(url, user, password)
@@ -32,10 +42,73 @@ class TestRailProject(TestRailAPICalls):
     def _fuse():
         LOG.warning("DO NOT TRY TO DO IT !!!")
 
+    def get_projects(self):
+        response = self._get_all(
+            super(TestRailProject, self).get_projects(), 'projects')
+        return response
+
+    def get_cases(self, project_id, suite_id=None, section_id=None):
+        response = self._get_all(
+            super(TestRailProject, self).get_cases(
+                self.project['id'], suite_id, section_id), 'cases')
+        return response
+
+    def get_milestones(self, project_id, filter=None):
+        response = self._get_all(
+            super(TestRailProject, self).get_milestones(project_id, filter),
+            'milestones')
+        return response
+
+    def get_plans(self, project_id, filter=None):
+        response = self._get_all(
+            super(TestRailProject, self).get_plans(project_id, filter), 'plans')
+        return response
+
+    def get_results(self, test_id, filter=None):
+        response = self._get_all(
+            super(TestRailProject, self).get_results(test_id, filter),
+            'results')
+        return response
+
+    def get_results_for_case(self, run_id, case_id, filter=None):
+        response = self._get_all(
+            super(TestRailProject, self).get_results_for_case(
+                run_id, case_id, filter), 'results')
+        return response
+
+    def get_results_for_run(self, run_id, filter=None):
+        response = self._get_all(
+            super(TestRailProject, self).get_results_for_run(run_id, filter),
+            'results')
+        return response
+
+    def get_runs(self, project_id, filter=None):
+        response = self._get_all(
+            super(TestRailProject, self).get_runs(project_id, filter), 'runs')
+        return response
+
+    def get_sections(self, project_id, suite_id):
+        response = self._get_all(
+            super(TestRailProject, self).get_sections(project_id, suite_id),
+            'sections')
+        return response
+
+    def get_tests(self, run_id, filter=None):
+        response = self._get_all(
+            super(TestRailProject, self).get_tests(run_id, filter), 'tests')
+        return response
+
+    def _get_all(self, response, entity):
+        entities = []
+        entities.extend(response[entity])
+        while response["_links"]["next"]:
+            uri = response["_links"]["next"].replace("/api/v2/", '')
+            response = self.client.send_get(uri)
+            entities.extend(response[entity])
+        return entities
+
     def get_cases_project(self, suite_id=None, section_id=None):
-        return super(TestRailProject, self).get_cases(self.project['id'],
-                                                      suite_id,
-                                                      section_id)
+        return self.get_cases(self.project['id'], suite_id, section_id)
 
     def get_configs_project(self):
         return super(TestRailProject, self).get_configs(self.project['id'])
@@ -45,12 +118,10 @@ class TestRailProject(TestRailAPICalls):
             self.project['id'], data)
 
     def get_milestones_project(self, filter=None):
-        return super(TestRailProject, self).get_milestones(self.project['id'],
-                                                           filter)
+        return self.get_milestones(self.project['id'], filter)
 
     def get_plans_project(self, filter=None):
-        return super(TestRailProject, self).get_plans(self.project['id'],
-                                                      filter)
+        return self.get_plans(self.project['id'], filter)
 
     def add_plan_project(self, data):
         return super(TestRailProject, self).add_plan(self.project['id'],
@@ -71,15 +142,13 @@ class TestRailProject(TestRailAPICalls):
             self._fuse()
 
     def get_runs_project(self, filter=None):
-        return super(TestRailProject, self).get_runs(self.project['id'],
-                                                     filter)
+        return self.get_runs(self.project['id'], filter)
 
     def add_run_project(self, data):
         return super(TestRailProject, self).add_run(self.project['id'], data)
 
     def get_sections_project(self, suite_id):
-        return super(TestRailProject, self).get_sections(self.project['id'],
-                                                         suite_id)
+        return self.get_sections(self.project['id'], suite_id)
 
     def add_section_project(self, data):
         return super(TestRailProject, self).add_section(self.project['id'],
