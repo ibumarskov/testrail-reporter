@@ -86,7 +86,7 @@ class TestRailAnalyzer:
 
     def analyze_results(self, check_list_obj):
         isinstance(check_list_obj, CheckListParser)
-        for check_obj in check_list_obj.attrs['tests']:
-            for test in self.tests:
+        for test in self.tests:
+            for check_obj in check_list_obj.attrs['tests']:
                 if test['title'] == check_obj['title']:
                     self._check_errors(check_obj, test)
