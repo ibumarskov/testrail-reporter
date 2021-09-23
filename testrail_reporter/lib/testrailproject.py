@@ -33,70 +33,63 @@ class TestRailProject(TestRailAPICalls):
         LOG.warning("DO NOT TRY TO DO IT !!!")
 
     def get_projects(self):
-        response = self._get_all(
+        yield from self._get_all(
             super(TestRailProject, self).get_projects(), 'projects')
-        return response
 
     def get_cases(self, project_id, suite_id=None, section_id=None):
-        response = self._get_all(
+        yield from self._get_all(
             super(TestRailProject, self).get_cases(
                 self.project['id'], suite_id, section_id), 'cases')
-        return response
 
     def get_milestones(self, project_id, filter=None):
-        response = self._get_all(
+        yield from self._get_all(
             super(TestRailProject, self).get_milestones(project_id, filter),
             'milestones')
-        return response
 
     def get_plans(self, project_id, filter=None):
-        response = self._get_all(
+        yield from self._get_all(
             super(TestRailProject, self).get_plans(project_id, filter),
             'plans')
-        return response
 
     def get_results(self, test_id, filter=None):
-        response = self._get_all(
+        response = list(self._get_all(
             super(TestRailProject, self).get_results(test_id, filter),
-            'results')
+            'results'))
         return response
 
     def get_results_for_case(self, run_id, case_id, filter=None):
-        response = self._get_all(
+        yield from self._get_all(
             super(TestRailProject, self).get_results_for_case(
                 run_id, case_id, filter), 'results')
-        return response
 
     def get_results_for_run(self, run_id, filter=None):
-        response = self._get_all(
+        yield from self._get_all(
             super(TestRailProject, self).get_results_for_run(run_id, filter),
             'results')
-        return response
 
     def get_runs(self, project_id, filter=None):
-        response = self._get_all(
+
+        yield from self._get_all(
             super(TestRailProject, self).get_runs(project_id, filter), 'runs')
-        return response
 
     def get_sections(self, project_id, suite_id):
-        response = self._get_all(
+        yield from self._get_all(
             super(TestRailProject, self).get_sections(project_id, suite_id),
             'sections')
-        return response
 
     def get_tests(self, run_id, filter=None):
-        response = self._get_all(
-            super(TestRailProject, self).get_tests(run_id, filter), 'tests')
+        response = list(self._get_all(
+            super(TestRailProject, self).get_tests(run_id, filter), 'tests'))
         return response
 
     def _get_all(self, response, entity):
-        entities = []
-        entities.extend(response[entity])
+        for ent in response[entity]:
+            yield ent
         while response["_links"]["next"]:
             uri = response["_links"]["next"].replace("/api/v2/", '')
             response = self.client.send_get(uri)
-            entities.extend(response[entity])
-        return entities
+            for ent in response[entity]:
+                yield ent
 
     def get_cases_project(self, suite_id=None, section_id=None):
         return self.get_cases(self.project['id'], suite_id, section_id)
@@ -112,7 +105,7 @@ class TestRailProject(TestRailAPICalls):
         return self.get_milestones(self.project['id'], filter)
 
     def get_plans_project(self, filter=None):
-        return self.get_plans(self.project['id'], filter)
+        yield from self.get_plans(self.project['id'], filter)
 
     def add_plan_project(self, data):
         return super(TestRailProject, self).add_plan(self.project['id'],
