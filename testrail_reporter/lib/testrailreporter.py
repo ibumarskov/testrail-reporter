@@ -171,6 +171,7 @@ class TestRailReporter:
         for p in plans_list:
             if p['name'] == plan_name and p['milestone_id'] == milestone_id:
                 plan = self.project.get_plan(p['id'])
+                break
         if plan is None:
             LOG.info("TestPlan wasn't found and will be created.")
             plan_data = {'name': plan_name, 'milestone_id': milestone_id}
