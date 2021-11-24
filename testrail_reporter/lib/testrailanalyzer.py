@@ -1,3 +1,4 @@
+import html
 import logging
 import sys
 
@@ -66,15 +67,15 @@ class TestRailAnalyzer:
         if check_obj['errors']:
             for err in check_obj['errors']:
                 if not current_res['comment']:
-                    LOG.warn("Test result for {} doesn't contain any log."
-                             "".format(test["title"]))
+                    LOG.warning("Test result for {} doesn't contain any log."
+                                "".format(test["title"]))
                     return False
-                if err in current_res['comment']:
+                if err in html.unescape(current_res['comment']):
                     pass
                 else:
                     LOG.info("Can't find string: {}".format(err))
-                    LOG.warn("Test results for {} don't match know issue."
-                             "".format(test["title"]))
+                    LOG.warning("Test results for {} don't match know issue."
+                                "".format(test["title"]))
                     return False
         msg = "Set by result analyzer"
         status = self.project.get_status_by_label(check_obj['status'])
