@@ -22,3 +22,4 @@ section:
         Octavia: "^octavia_tempest_plugin."
         Tungsten: "^tungsten_tempest_plugin."
         Patrole: "^patrole_tempest_plugin."
+        TF-Heat: "^tf_heat_tempest_plugin."
