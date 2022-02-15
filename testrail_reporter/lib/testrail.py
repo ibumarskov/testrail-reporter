@@ -14,9 +14,14 @@ Copyright Gurock Software GmbH. See license.md for details.
 
 import base64
 import json
+import time
+import logging
+import sys
 
 import requests
 
+LOG = logging.getLogger(__name__)
+LOG.addHandler(logging.StreamHandler(sys.stdout))
 
 class APIClient:
     def __init__(self, base_url):
@@ -25,6 +30,14 @@ class APIClient:
         if not base_url.endswith('/'):
             base_url += '/'
         self.__url = base_url + 'index.php?/api/v2/'
+
+    @staticmethod
+    def _get_response_error(response):
+        try:
+            error = response.json()
+        except:  # noqa: E722 response.content not formatted as JSON
+            error = str(response.content)
+        return error
 
     def send_get(self, uri, filepath=None):
         """Issue a GET request (read) against the API.
@@ -77,11 +90,14 @@ class APIClient:
             headers['Content-Type'] = 'application/json'
             response = requests.get(url, headers=headers)
 
-        if response.status_code > 201:
-            try:
-                error = response.json()
-            except:     # noqa: E722 response.content not formatted as JSON
-                error = str(response.content)
+        if response.status_code == 429:
+            error = self._get_response_error(response)
+            LOG.warning(f"{error}")
+            time.sleep(3)
+            self.__send_request(method, uri, data)
+
+        if response.status_code > 201 and response.status_code != 429:
+            error = self._get_response_error(response)
             raise APIError('TestRail API returned HTTP %s (%s)'
                            % (response.status_code, error))
         else:

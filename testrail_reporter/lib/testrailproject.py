@@ -102,7 +102,7 @@ class TestRailProject(TestRailAPICalls):
             self.project['id'], data)
 
     def get_milestones_project(self, filter=None):
-        return self.get_milestones(self.project['id'], filter)
+        return [x for x in self.get_milestones(self.project['id'], filter)]
 
     def get_plans_project(self, filter=None):
         yield from self.get_plans(self.project['id'], filter)
