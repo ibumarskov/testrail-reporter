@@ -10,6 +10,7 @@ section:
         Neutron plugin: "^neutron_tempest_plugin."
         Nova: "^tempest.api.compute."
         Cinder: "^tempest.api.volume."
+        Cinder plugin: "^cinder_tempest_plugin."
         Swift: "^tempest.api.object_storage."
         Scenario: "^tempest.scenario."
         Heat: "^heat_tempest_plugin.tests."

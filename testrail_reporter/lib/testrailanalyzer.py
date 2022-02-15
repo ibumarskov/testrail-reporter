@@ -59,10 +59,11 @@ class TestRailAnalyzer:
     def _get_failed_tests(self):
         status_id = self.project.get_status_by_label("failed")
         tests_filter = self.project.get_tests_filter(status_id=[status_id])
-        return self.project.get_tests(self.test_run['id'], filter=tests_filter)
+        return list(self.project.get_tests(self.test_run['id'],
+                                           filter=tests_filter))
 
     def _check_errors(self, check_obj, test):
-        test_res = self.project.get_results(test['id'])
+        test_res = list(self.project.get_results(test['id']))
         current_res = test_res[-1]
         if check_obj['errors']:
             for err in check_obj['errors']:

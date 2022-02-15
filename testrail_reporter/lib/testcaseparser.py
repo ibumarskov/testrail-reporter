@@ -15,6 +15,7 @@ class TestCaseParser(object):
         with open(tc_list_file, 'r') as stream:
             tc_raw_list = [line.rstrip('\n') for line in stream]
         tc_list = []
+        tc_raw_list.sort()
         for i in tc_raw_list:
             tc = copy.copy(self.tr_case_attrs)
             tc['title'] = perform_actions(

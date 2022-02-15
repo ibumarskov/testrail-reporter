@@ -15,7 +15,7 @@ class TestRailProject(TestRailAPICalls):
         self.statuses = self.get_statuses()
         milestone_f = self.get_milestones_filter(is_completed=False,
                                                  is_started=True)
-        self.milestones = self.get_milestones_project(milestone_f)
+        self.milestones = list(self.get_milestones_project(milestone_f))
         self.configurations = self.get_configs_project()
         self.case_fields = self.get_case_fields()
         self.result_fields = self.get_result_fields()
@@ -52,10 +52,9 @@ class TestRailProject(TestRailAPICalls):
             'plans')
 
     def get_results(self, test_id, filter=None):
-        response = list(self._get_all(
+        yield from self._get_all(
             super(TestRailProject, self).get_results(test_id, filter),
-            'results'))
-        return response
+            'results')
 
     def get_results_for_case(self, run_id, case_id, filter=None):
         yield from self._get_all(
@@ -68,7 +67,6 @@ class TestRailProject(TestRailAPICalls):
             'results')
 
     def get_runs(self, project_id, filter=None):
-
         yield from self._get_all(
             super(TestRailProject, self).get_runs(project_id, filter), 'runs')
 
@@ -78,9 +76,8 @@ class TestRailProject(TestRailAPICalls):
             'sections')
 
     def get_tests(self, run_id, filter=None):
-        response = list(self._get_all(
-            super(TestRailProject, self).get_tests(run_id, filter), 'tests'))
-        return response
+        yield from self._get_all(
+            super(TestRailProject, self).get_tests(run_id, filter), 'tests')
 
     def _get_all(self, response, entity):
         for ent in response[entity]:
@@ -105,11 +102,10 @@ class TestRailProject(TestRailAPICalls):
         return self.get_milestones(self.project['id'], filter)
 
     def get_plans_project(self, filter=None):
-        yield from self.get_plans(self.project['id'], filter)
+        return self.get_plans(self.project['id'], filter)
 
     def add_plan_project(self, data):
-        return super(TestRailProject, self).add_plan(self.project['id'],
-                                                     data)
+        return super(TestRailProject, self).add_plan(self.project['id'], data)
 
     def get_current_project(self):
         return super(TestRailProject, self).get_project(self.project['id'])

@@ -87,8 +87,7 @@ class TestRailReporter:
         raise NotFound("Can't find status: {}".format(result['status_id']))
 
     def get_section_id(self, name, suite):
-        sections = self.project.get_sections_project(suite['id'])
-        for i in sections:
+        for i in self.project.get_sections_project(suite['id']):
             if name == i['name']:
                 return i['id']
         raise NotFound("Can't find Section '{}' in Test Suite '{}'"
@@ -110,9 +109,12 @@ class TestRailReporter:
         suite_id = suite['id']
 
         # Exclude existing cases for fast processing
+        LOG.info("Exclude existing cases for fast processing:\n"
+                 "Amount of test cases: {}".format(len(tc_list)))
         cases = self.project.get_cases_project(suite_id=suite_id)
-        casetitels = [x['title'] for x in cases]
-        tc_list = [tc for tc in tc_list if tc['title'] not in casetitels]
+        casetitles = [x['title'] for x in cases]
+        tc_list = [tc for tc in tc_list if tc['title'] not in casetitles]
+        LOG.info("Remaining amount of test cases: {}".format(len(tc_list)))
 
         tr_cases = {}
         for tc in tc_list:
@@ -124,6 +126,7 @@ class TestRailReporter:
                 except NotFound:
                     section_data = {'name': section_id,
                                     'suite_id': suite_id}
+                    LOG.info("Create section: {}".format(section_id))
                     self.project.add_section_project(section_data)
                     section_id = self.get_section_id(section_id, suite)
 
@@ -151,6 +154,7 @@ class TestRailReporter:
                     tr_cases[section_id]['titles'].append(tr_tc['title'])
 
             if tc['title'] not in tr_cases[section_id]['titles']:
+                LOG.info("Create case: {}".format(tc['title']))
                 self.project.add_case(section_id, tc)
 
     def publish_results(self, results, plan_name, suite_name, run_name,
@@ -202,7 +206,7 @@ class TestRailReporter:
                 plan_entry['runs'][0]['url']))
 
         run = self.project.get_run(plan_entry['runs'][0]['id'])
-        tr_tests = self.project.get_tests(run['id'])
+        tr_tests = list(self.project.get_tests(run['id']))
 
         # Analysis of TearDown actions should be processed for raw results to
         # exclude false results for untested test cases.
@@ -260,4 +264,4 @@ class TestRailReporter:
         for status in statuses:
             status_ids.remove(self.project.get_status_by_label(status))
         tests_filter = self.project.get_tests_filter(status_id=status_ids)
-        return self.project.get_tests(run_id, filter=tests_filter)
+        return list(self.project.get_tests(run_id, filter=tests_filter))

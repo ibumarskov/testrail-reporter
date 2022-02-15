@@ -14,8 +14,26 @@ Copyright Gurock Software GmbH. See license.md for details.
 
 import base64
 import json
+import time
+import logging
+import sys
 
 import requests
+
+LOG = logging.getLogger(__name__)
+LOG.addHandler(logging.StreamHandler(sys.stdout))
+
+
+def retry_429(func, timeout=5):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except APIError429 as e:
+            LOG.warning(f"{e.message}")
+            LOG.info(f"Retry after {timeout}")
+            time.sleep(timeout)
+            return func(*args, **kwargs)
+    return wrapper
 
 
 class APIClient:
@@ -25,6 +43,14 @@ class APIClient:
         if not base_url.endswith('/'):
             base_url += '/'
         self.__url = base_url + 'index.php?/api/v2/'
+
+    @staticmethod
+    def _get_response_error(response):
+        try:
+            error = response.json()
+        except:  # noqa: E722 response.content not formatted as JSON
+            error = str(response.content)
+        return error
 
     def send_get(self, uri, filepath=None):
         """Issue a GET request (read) against the API.
@@ -53,6 +79,7 @@ class APIClient:
         """
         return self.__send_request('POST', uri, data)
 
+    @retry_429
     def __send_request(self, method, uri, data):
         url = self.__url + uri
 
@@ -77,11 +104,10 @@ class APIClient:
             headers['Content-Type'] = 'application/json'
             response = requests.get(url, headers=headers)
 
-        if response.status_code > 201:
-            try:
-                error = response.json()
-            except:     # noqa: E722 response.content not formatted as JSON
-                error = str(response.content)
+        if response.status_code > 201 and response.status_code != 429:
+            error = self._get_response_error(response)
+            if response.status_code == 429:
+                raise APIError429(error, response.status_code)
             raise APIError('TestRail API returned HTTP %s (%s)'
                            % (response.status_code, error))
         else:
@@ -99,6 +125,17 @@ class APIClient:
 
 
 class APIError(Exception):
+    def __init__(self, message="", response_code=None):
+        super(APIError, self).__init__(message)
+        self.message = message
+        self.response_code = response_code
+
+    def __str__(self):
+        return f"TestRail API returned HTTP {self.response_code} " \
+               f"({self.message})"
+
+
+class APIError429(APIError):
     pass
 
 
