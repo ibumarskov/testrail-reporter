@@ -104,7 +104,7 @@ class APIClient:
             headers['Content-Type'] = 'application/json'
             response = requests.get(url, headers=headers)
 
-        if response.status_code > 201 and response.status_code != 429:
+        if response.status_code > 201:
             error = self._get_response_error(response)
             if response.status_code == 429:
                 raise APIError429(error, response.status_code)
