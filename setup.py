@@ -5,9 +5,10 @@ with open('README.md') as f:
 
 setup(
     name='testrail-reporter',
-    version='1.1.1',
+    version='1.1.2',
     packages=find_packages(),
     package_data={'': ['etc/*', 'etc/maps/pytest/*', 'etc/maps/tempest/*']},
+    python_requires='>=3.6',
     install_requires=[
         'flake8',
         'pyyaml',
@@ -23,7 +24,17 @@ setup(
     # metadata to display on PyPI
     author='Ilya Bumarskov',
     author_email='bumarskov@gmail.com',
-    description='Report test results to TestRail',
+    description='TestRail reporter tool',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url="https://github.com/ibumarskov/testrail-reporter",
+    classifiers=[
+        'Development Status :: 2 - Pre-Alpha',
+        'Topic :: Software Development :: Quality Assurance',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3 :: Only',
+    ],
+    keywords='testrail reporter pytest tempest',
 )
