@@ -4,7 +4,7 @@ with open('README.md') as f:
     long_description = f.read()
 
 setup(
-    name='testrail-reporter',
+    name='testrail-reporter-tool',
     version='1.1.2',
     packages=find_packages(),
     package_data={'': ['etc/*', 'etc/maps/pytest/*', 'etc/maps/tempest/*']},
