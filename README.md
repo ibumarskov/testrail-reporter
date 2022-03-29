@@ -1,5 +1,5 @@
 # TestRail reporter
-[![BuildStatus](https://travis-ci.com/ibumarskov/testrail-reporter.svg?branch=master)](https://travis-ci.com/ibumarskov/testrail-reporter)
+[![CircleCI](https://circleci.com/gh/ibumarskov/testrail-reporter/tree/master.svg?style=svg)](https://circleci.com/gh/ibumarskov/testrail-reporter/?branch=master)
 
 The testrail-reporter repository contains scripts that allow to report test results to TestRail and analyze them.
 
