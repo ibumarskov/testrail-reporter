@@ -5,10 +5,14 @@ version: 2.1
 orbs:
   python: circleci/python@2.0.3
 
-jobs:
-  syntax-check:
+executors:
+  python:
     docker:
       - image: cimg/python:3.10.2
+
+jobs:
+  syntax-check:
+    executor: python
     steps:
       - checkout
       - python/install-packages:
@@ -16,8 +20,17 @@ jobs:
       - run:
           name: Run pep8 check via tox
           command: tox -v -e pep8
+  publish:
+    executor: python
+    steps:
+      - checkout
+      - python/dist
+      - run: pip install twine && twine upload dist/*
 
 workflows:
   sample:
     jobs:
       - syntax-check
+      - publish:
+          requires:
+            - syntax-check
