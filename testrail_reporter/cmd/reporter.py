@@ -93,7 +93,9 @@ def publish(args, config):
                              update_existing=True,
                              remove_untested=args.remove_untested,
                              remove_skipped=args.remove_skipped,
-                             limit=args.limit)
+                             limit=args.limit,
+                             tr_plan_descr=args.tr_plan_descr,
+                             tr_run_descr=args.tr_run_descr)
 
 
 def update_suite(args, config):
@@ -186,6 +188,14 @@ def main():
         '-c', dest='tr_conf', default=None,
         help="Set configuration for test entry (Test Run). "
              "Example: -c \"{'Operating Systems':'Ubuntu 18.04'}\""
+    )
+    parser_b.add_argument(
+        '--plan-description', dest='tr_plan_descr', default=None,
+        help="Test Plan description."
+    )
+    parser_b.add_argument(
+        '--run-description', dest='tr_run_descr', default=None,
+        help="Test Run description."
     )
     parser_b.add_argument(
         '--limit', dest='limit', default=100000, type=int,

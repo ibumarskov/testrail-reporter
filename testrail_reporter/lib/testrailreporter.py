@@ -99,6 +99,28 @@ class TestRailReporter:
                 return m['id']
         raise NotFound("Can't find milestone: {}".format(name))
 
+    @staticmethod
+    def update_description(init_descr, description):
+        '''
+        :param init_descr: current description of test plan or test run
+        :param description: description provided by testrail-reporter tool
+        :return: string
+        '''
+        begin_msg = \
+            "_\r\n**=== Description message (TestRail reporter tool) ===**"
+        end_msg = \
+            "**=== End description message (TestRail reporter tool) ===**\r\n_"
+        tr_msg = "{}\r\n{}\r\n{}".format(begin_msg, description, end_msg)
+        if init_descr is None:
+            init_descr = ''
+        if begin_msg in init_descr:
+            a_msg = init_descr.rsplit(begin_msg, maxsplit=1)[0]
+            b_msg = init_descr.rsplit(end_msg, maxsplit=1)[1]
+            descr = "{}{}{}".format(a_msg, tr_msg, b_msg)
+        else:
+            descr = "{}{}".format(init_descr, tr_msg)
+        return descr
+
     def update_test_suite(self, name, tc_list):
         # Check suite name and create if needed:
         try:
@@ -160,10 +182,12 @@ class TestRailReporter:
     def publish_results(self, results, plan_name, suite_name, run_name,
                         milestone=None, configuration=None,
                         update_existing=False, remove_untested=False,
-                        remove_skipped=False, limit=0):
+                        remove_skipped=False, limit=0, tr_plan_descr=None,
+                        tr_run_descr=None):
         suite = self.project.get_suite_by_name(suite_name)
         plans_list = self.project.get_plans_project()
         plan = None
+        run = None
         milestone_id = None
         conf_ids = []
         if configuration:
@@ -175,37 +199,51 @@ class TestRailReporter:
         for p in plans_list:
             if p['name'] == plan_name and p['milestone_id'] == milestone_id:
                 plan = self.project.get_plan(p['id'])
+                if tr_plan_descr:
+                    descr = self.update_description(plan['description'],
+                                                    tr_plan_descr)
+                    plan_data = {'description': descr}
+                    self.project.update_plan(plan['id'], plan_data)
                 break
         if plan is None:
             LOG.info("TestPlan wasn't found and will be created.")
             plan_data = {'name': plan_name, 'milestone_id': milestone_id}
+            if tr_plan_descr:
+                descr = self.update_description(None, tr_plan_descr)
+                plan_data['description'] = descr
             plan = self.project.add_plan_project(plan_data)
         LOG.info("TestPlan url: {}".format(plan['url']))
 
-        run_present = False
         for r in plan['entries']:
-            if run_name == r['name']:
-                if r['runs'][0]["config_ids"] != conf_ids:
-                    continue
-                run_present = True
+            if r['name'] == run_name and \
+                    r['runs'][0]["config_ids"] == conf_ids:
+                run = self.project.get_run(r['runs'][0]['id'])
                 plan_entry = r
+                run_url = r['runs'][0]['url']
                 if not update_existing:
-                    raise Conflict("Test Run {} already present. Link: {}"
-                                   "".format(run_name,
-                                             plan_entry['runs'][0]['url']))
-                else:
-                    LOG.warning("Test Run {} will be overridden".format(
-                        plan_entry['runs'][0]['url']))
-        if not run_present:
+                    raise Conflict(f"Test Run {run_name} already present. "
+                                   f"Link: {run_url}")
+                LOG.warning(f"Test Run {run_url} will be overridden")
+                if tr_run_descr:
+                    descr = self.update_description(run['description'],
+                                                    tr_run_descr)
+                    run_data = {'description': descr}
+                    self.project.update_plan_entry(plan['id'], r['id'],
+                                                   run_data)
+                break
+        if run is None:
             run_data = {'suite_id': suite['id'], 'name': run_name}
             if configuration:
                 run_data["config_ids"] = conf_ids
                 run_data["runs"] = [{"config_ids": conf_ids}]
+            if tr_run_descr:
+                descr = self.update_description(None, tr_run_descr)
+                run_data['description'] = descr
             plan_entry = self.project.add_plan_entry(plan['id'], run_data)
-            LOG.info("Test Run {} has been created".format(
-                plan_entry['runs'][0]['url']))
+            run_url = plan_entry['runs'][0]['url']
+            LOG.info(f"Test Run {run_url} has been created")
+            run = self.project.get_run(plan_entry['runs'][0]['id'])
 
-        run = self.project.get_run(plan_entry['runs'][0]['id'])
         tr_tests = list(self.project.get_tests(run['id']))
 
         # Analysis of TearDown actions should be processed for raw results to

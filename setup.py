@@ -5,7 +5,7 @@ with open('README.md') as f:
 
 setup(
     name='testrail-reporter-tool',
-    version='1.1.2',
+    version='1.2.1',
     packages=find_packages(),
     package_data={'': ['etc/*', 'etc/maps/pytest/*', 'etc/maps/tempest/*']},
     python_requires='>=3.6',
