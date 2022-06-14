@@ -28,13 +28,17 @@ Set the TestRail parameters before using the script:
 ### Publish results
 
     usage: testrail-reporter publish [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN] [-s TR_SUITE] [-m TR_MILESTONE] [-c TR_CONF] [--plan-description TR_PLAN_DESCR] [--run-description TR_RUN_DESCR] [--limit LIMIT]
+                                 [--remove-untested] [--remove-skipped] [--result-attrs TR_RESULT_ATTRS] [--map MAP]
+                                 Tempest report
+
+    usage: testrail-reporter publish [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN] [-s TR_SUITE] [-m TR_MILESTONE] [-c TR_CONF] [--plan-description TR_PLAN_DESCR] [--run-description TR_RUN_DESCR] [--limit LIMIT]
                                  [--tr-limit TR_LIMIT] [--remove-untested] [--remove-skipped] [--result-attrs TR_RESULT_ATTRS] [--map MAP] [--result-map TR_RESULT_MAP]
                                  Tempest report
 
     positional arguments:
       Tempest report        Path to tempest report (.xml)
     
-    optional arguments:
+    options:
       -h, --help            show this help message and exit
       -p TR_PROJECT         TestRail Project name.
       -t TR_PLAN            TestRail Plan name
@@ -53,8 +57,6 @@ Set the TestRail parameters before using the script:
       --result-attrs TR_RESULT_ATTRS
                             Set path to config file with custom result attributes (.yaml format).
       --map MAP             Use predefined map for parsing attributes. Supported values:tempest, pytest
-      --result-map TR_RESULT_MAP
-                            Set path to config file with custom result map. Note: this parameter overrides predefined map parameter.
 
 ### Update test suite
 
@@ -63,7 +65,7 @@ Set the TestRail parameters before using the script:
     positional arguments:
       List of test cases    Path to file with list of tests.
     
-    optional arguments:
+    options:
       -h, --help            show this help message and exit
       -p TR_PROJECT         TestRail Project name.
       -s TR_SUITE           TestRail Suite name.
@@ -72,6 +74,7 @@ Set the TestRail parameters before using the script:
       --map MAP             Use predefined map for parsing case attributes. Supported values: tempest, pytest
       --tc-map TR_CASE_MAP  Set path to config file with custom case map. Note: this parameter overrides predefined map parameter.
 
+
 ### Analyze results
 
     usage: testrail-reporter analyze [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN] [-c TR_CONF] Check list
@@ -79,7 +82,7 @@ Set the TestRail parameters before using the script:
     positional arguments:
       Check list     Path to check list (.yml)
     
-    optional arguments:
+    options:
       -h, --help     show this help message and exit
       -p TR_PROJECT  TestRail Project name.
       -t TR_PLAN     TestRail Plan name
@@ -93,7 +96,7 @@ Set the TestRail parameters before using the script:
 **Attributes description:**
 
 - *tc_tag* - name of xml element's tag that contains test case result. XML elements with another tags (exclude child elements) will be ignored.
-- *test_id* - section describes action for generation of test title .
+- *test_id* - section describes action for generation of test title.
 - *status_id* - section describes action for generation of test status.
 - *comments* - section describes action for generation of comments (logs).
 
@@ -109,7 +112,7 @@ Optionally template can contains filter and actions for setUp and tearDown class
 
 if sections are determined, they must contains following attributes:
 - *match* - regular expression pattern. Only if test name matches the pattern, another actions will be executed.
-- *status_id* (optionally) - set custom status
+- *status_id* (optionally) - replace original test status with custom status. Replace status only if original status is "passed". Otherwise, leave the original status.
 - *actions* - list of action for string generation. Description of supported actions can be found [below](#actions).
 
 Example of template: *testrail_reporter/etc/maps/pytest/result_template.yaml*
@@ -145,17 +148,11 @@ Example of template: *testrail_reporter/etc/attrs2id.yaml*
 
 XML actions are used to generate string from XML file. All actions are performed in the order specified in template.
 
-- *get_attribute* - add (concatenate) xml attribute value with the specified name.
 - *add_string* - add (concatenate) custom string.
-- *get_element_text* - add
-- *check* - checks specified condition and execute xml_actions if True. This action allow to take nested xml elements.
-    - *parent* - checks for specified attribute for current xml element:
-        - *attribute* - сheck for the specified xml attribute.
-        - *xml_actions* - execute xml_action for current element.
-    - *child* - checks of availability of child xml element with specified tag and/or attribute:
-        - *tag* - сheck for the specified tag in child element.
-        - *attribute* - сheck for the specified xml attribute.
-        - *xml_actions* - execute xml_action for child element.
+- *get_attribute* - add (concatenate) xml attribute value with the specified name.
+- *get_element_text* - add (concatenate) element's text.
+- *has_child_tag* - check if element contains child with specified tag and 
+  execute xml_actions (must be specified) for this element.
 
 ## Docker image
 

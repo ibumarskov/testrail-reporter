@@ -68,19 +68,12 @@ def publish(args, config):
                                                           rpath)
     else:
         tr_result_attrs = args.tr_result_attrs
-    if not args.tr_result_map:
-        rpath = '/'.join(('etc/maps', args.map, 'result_template.yaml'))
-        tr_result_map = pkg_resources.resource_filename("testrail_reporter",
-                                                        rpath)
-    else:
-        tr_result_map = args.tr_result_attrs
     if args.tr_conf is not None:
         tr_conf = json.loads(args.tr_conf.replace("\'", '"'))
     else:
         tr_conf = None
 
-    report = ReportParser(tr_result_attrs=tr_result_attrs,
-                          tr_result_map=tr_result_map)
+    report = ReportParser(tr_result_attrs=tr_result_attrs)
     results = report.get_result_list(args.report_path)
 
     reporter = TestRailReporter(url=config.url,
@@ -228,12 +221,6 @@ def main():
         default='tempest',
         help='Use predefined map for parsing attributes. Supported values:'
              'tempest, pytest'
-    )
-    parser_b.add_argument(
-        '--result-map', dest='tr_result_map',
-        default=None,
-        help='Set path to config file with custom result map. '
-             'Note: this parameter overrides predefined map parameter.'
     )
     parser_b.set_defaults(func=publish)
     # ================================ update ================================

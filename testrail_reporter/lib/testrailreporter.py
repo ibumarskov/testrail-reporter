@@ -261,6 +261,9 @@ class TestRailReporter:
                     res['comment'] += "Some TearDown actions are failed:\n"
                     res['comment'] += "=================================\n"
                     res['comment'] += res_td['comment']
+                    if res_td['status_id'] and res['status_id'].lower() == \
+                            "passed":
+                        res['status_id'] = res_td['status_id']
                     LOG.warning("TestCase {} has failed TearDown action. "
                                 "Please check logs.".format(res['test_id']))
 
