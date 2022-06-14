@@ -1,4 +1,39 @@
-# Default attributes for test result
-test_id: ''
-status_id: ''
-comment: ''
+# Mandatory attributes for test results
+test_id:
+  xml_actions:
+    - get_attribute: 'classname'
+    - add_string: '.'
+    - get_attribute: 'name'
+status_id:
+  default: 'passed'
+  xml_actions:
+    - has_child_tag: 'failure'
+      xml_actions:
+        - add_string: 'failed'
+    - has_child_tag: 'skipped'
+      xml_actions:
+        - add_string: 'skipped'
+
+# Optional attributes for test results
+comment:
+  default: ''
+  xml_actions:
+    - has_child_tag: 'failure'
+      xml_actions:
+        - get_element_text
+    - has_child_tag: 'skipped'
+      xml_actions:
+        - get_element_text
+
+# Filters to match failures in setUp/tearDown classes (optional)
+filter_setup:
+  match: '.*setUpClass .*'
+  status: 'WontTest'
+  actions:
+    - find: '.*setUpClass.*\((.*)\)'
+
+filter_teardown:
+  match: '.*tearDownClass .*'
+  status: 'MixedSuccess'
+  actions:
+    - find: '.*tearDownClass.*\((.*)\)'
