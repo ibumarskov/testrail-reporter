@@ -79,8 +79,7 @@ def publish(args, config):
     else:
         tr_conf = None
 
-    report = ReportParser(tr_result_attrs=tr_result_attrs,
-                          tr_result_map=tr_result_map)
+    report = ReportParser(tr_result_attrs=tr_result_attrs)
     results = report.get_result_list(args.report_path)
 
     reporter = TestRailReporter(url=config.url,

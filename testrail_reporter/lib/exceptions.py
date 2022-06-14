@@ -35,3 +35,11 @@ class Conflict(ReporterException):
 
 class UnknownAction(ReporterException):
     message = "Unknown action: {action}"
+
+
+class ActionIsMissed(ReporterException):
+    message = "Required action is missed: {action}"
+
+
+class FieldIsMissed(ReporterException):
+    message = "Required field is missed: {field}"
