@@ -1,14 +1,13 @@
 # Mandatory attributes for test results
 test_id:
   xml_actions:
+    - get_attribute: 'classname'
+    - add_string: '.'
     - get_attribute: 'name'
 status_id:
   default: 'passed'
   xml_actions:
     - has_child_tag: 'failure'
-      xml_actions:
-        - add_string: 'failed'
-    - has_child_tag: 'error'
       xml_actions:
         - add_string: 'failed'
     - has_child_tag: 'skipped'
@@ -20,9 +19,6 @@ comment:
   default: ''
   xml_actions:
     - has_child_tag: 'failure'
-      xml_actions:
-        - get_element_text
-    - has_child_tag: 'error'
       xml_actions:
         - get_element_text
     - has_child_tag: 'skipped'
