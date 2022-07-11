@@ -93,7 +93,8 @@ def publish(args, config):
                              update_existing=True,
                              remove_untested=args.remove_untested,
                              remove_skipped=args.remove_skipped,
-                             limit=args.limit,
+                             comm_limit=args.limit,
+                             tr_limit=args.tr_limit,
                              tr_plan_descr=args.tr_plan_descr,
                              tr_run_descr=args.tr_run_descr)
 
@@ -199,7 +200,12 @@ def main():
     )
     parser_b.add_argument(
         '--limit', dest='limit', default=100000, type=int,
-        help='Limit the length of the comments in bytes'
+        help='Limit the length of the comments (characters, 0 is unlimited.)'
+    )
+    parser_b.add_argument(
+        '--tr-limit', dest='tr_limit', default=0, type=int,
+        help='Limit for results data sended within one POST request '
+             '(bytes, 0 is unlimited.).'
     )
     parser_b.add_argument(
         '--remove-untested', dest='remove_untested', action="store_true",

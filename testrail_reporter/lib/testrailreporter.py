@@ -182,8 +182,8 @@ class TestRailReporter:
     def publish_results(self, results, plan_name, suite_name, run_name,
                         milestone=None, configuration=None,
                         update_existing=False, remove_untested=False,
-                        remove_skipped=False, limit=0, tr_plan_descr=None,
-                        tr_run_descr=None):
+                        remove_skipped=False, comm_limit=0, tr_limit=10000,
+                        tr_plan_descr=None, tr_run_descr=None):
         suite = self.project.get_suite_by_name(suite_name)
         plans_list = self.project.get_plans_project()
         plan = None
@@ -263,11 +263,11 @@ class TestRailReporter:
                 self._convert_test2id(res, tr_tests)
             if isinstance(res['status_id'], str):
                 self._convert_status2id(res)
-            if limit and len(res['comment']) > limit:
+            if comm_limit and len(res['comment']) > comm_limit:
                 LOG.info("Test {}: cutting the length of the comments to {} "
                          "bytes due to capacity limit."
-                         "".format(res['test_id'], limit))
-                lim = int(limit/2)
+                         "".format(res['test_id'], comm_limit))
+                lim = int(comm_limit/2)
                 separator = "< ----- logs were omitted due to limit ----- >"
                 res['comment'] = "\n".join([res['comment'][:lim], separator,
                                             res['comment'][-lim:]])
@@ -278,7 +278,18 @@ class TestRailReporter:
             results_setup = self.match_group2tests(res, tr_tests)
             results['results'].extend(results_setup)
 
-        self.project.add_results(run['id'], {'results': results['results']})
+        if tr_limit and sys.getsizeof(results['results']) > tr_limit:
+            LOG.info(f"Results data limit ({tr_limit} bytes) is exceeded. "
+                     f"Data will be divided into several requests.")
+            batch = []
+            for res in results['results']:
+                if sys.getsizeof(batch) + sys.getsizeof(res) < tr_limit:
+                    batch.append(res)
+                else:
+                    self.project.add_results(run['id'], {'results': batch})
+                    batch = []
+        else:
+            self.project.add_results(run['id'], {'results': results['results']})
         LOG.info("Results were uploaded.")
 
         rm_statuses = []
