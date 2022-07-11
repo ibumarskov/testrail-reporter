@@ -27,13 +27,10 @@ Set the TestRail parameters before using the script:
 
 ### Publish results
 
-    usage: testrail-reporter publish [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
-                                     [-s TR_SUITE] [-m TR_MILESTONE] [-c TR_CONF]
-                                     [--remove-untested]
-                                     [--result-attrs TR_RESULT_ATTRS]
-                                     [--result-map TR_RESULT_MAP]
-                                     Tempest report
-    
+    usage: testrail-reporter publish [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN] [-s TR_SUITE] [-m TR_MILESTONE] [-c TR_CONF] [--plan-description TR_PLAN_DESCR] [--run-description TR_RUN_DESCR] [--limit LIMIT]
+                                 [--tr-limit TR_LIMIT] [--remove-untested] [--remove-skipped] [--result-attrs TR_RESULT_ATTRS] [--map MAP] [--result-map TR_RESULT_MAP]
+                                 Tempest report
+
     positional arguments:
       Tempest report        Path to tempest report (.xml)
     
@@ -44,26 +41,25 @@ Set the TestRail parameters before using the script:
       -r TR_RUN             TestRail Run name.
       -s TR_SUITE           TestRail Suite name.
       -m TR_MILESTONE       TestRail milestone.
-      -c TR_CONF            Set configuration for test entry (Test Run). Example:
-                            -c "{'Operating Systems':'Ubuntu 18.04'}"
+      -c TR_CONF            Set configuration for test entry (Test Run). Example: -c "{'Operating Systems':'Ubuntu 18.04'}"
       --plan-description TR_PLAN_DESCR
                             Test Plan description.
       --run-description TR_RUN_DESCR
                             Test Run description.
-      --limit LIMIT         Limit the length of the comments in bytes
+      --limit LIMIT         Limit the length of the comments (characters, 0 is unlimited.)
+      --tr-limit TR_LIMIT   Limit for results data sended within one POST request (bytes, 0 is unlimited.).
       --remove-untested     Remove untested cases from Test Run
       --remove-skipped      Remove skipped cases from Test Run
       --result-attrs TR_RESULT_ATTRS
-                            Custom result attributes
+                            Set path to config file with custom result attributes (.yaml format).
+      --map MAP             Use predefined map for parsing attributes. Supported values:tempest, pytest
       --result-map TR_RESULT_MAP
-                            Custom result map
+                            Set path to config file with custom result map. Note: this parameter overrides predefined map parameter.
 
 ### Update test suite
 
-    usage: testrail-reporter update [-h] [-p TR_PROJECT] [-s TR_SUITE]
-                                    [--tc-map TESTCASE_MAP]
-                                    List of test cases
-    
+    usage: testrail-reporter update [-h] [-p TR_PROJECT] [-s TR_SUITE] [--case-attrs TR_CASE_ATTRS] [--map MAP] [--tc-map TR_CASE_MAP] List of test cases
+
     positional arguments:
       List of test cases    Path to file with list of tests.
     
@@ -71,14 +67,15 @@ Set the TestRail parameters before using the script:
       -h, --help            show this help message and exit
       -p TR_PROJECT         TestRail Project name.
       -s TR_SUITE           TestRail Suite name.
-      --tc-map TESTCASE_MAP
-                            TestCase map
+      --case-attrs TR_CASE_ATTRS
+                            Set path to config file with custom case attributes (.yaml format).
+      --map MAP             Use predefined map for parsing case attributes. Supported values: tempest, pytest
+      --tc-map TR_CASE_MAP  Set path to config file with custom case map. Note: this parameter overrides predefined map parameter.
 
 ### Analyze results
 
-    usage: testrail-reporter analyze [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN]
-                                     Check list
-    
+    usage: testrail-reporter analyze [-h] [-p TR_PROJECT] [-t TR_PLAN] [-r TR_RUN] [-c TR_CONF] Check list
+
     positional arguments:
       Check list     Path to check list (.yml)
     
@@ -87,6 +84,7 @@ Set the TestRail parameters before using the script:
       -p TR_PROJECT  TestRail Project name.
       -t TR_PLAN     TestRail Plan name
       -r TR_RUN      TestRail Run name.
+      -c TR_CONF     Set configuration for test entry (Test Run). Example: -c "{'Operating Systems':'Ubuntu 18.04'}"
 
 ## Templates and actions
 
