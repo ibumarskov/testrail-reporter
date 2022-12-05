@@ -13,12 +13,10 @@ class ReportParser(object):
             self.tr_result_attrs = yaml.safe_load(stream)
         with open(tr_result_map, 'r') as stream:
             self.tr_result_map = yaml.safe_load(stream)
+        self.raw_results = []
 
-    def get_result_list(self, xml_file):
-        tree = ET.parse(xml_file)
-        root = tree.getroot()
-        raw_results = []
-        for child in root:
+    def _get_result_testsuite(self, testsuite):
+        for child in testsuite:
             if child.tag != self.tr_result_map['tc_tag']:
                 continue
             tc_res = copy.copy(self.tr_result_attrs)
@@ -42,12 +40,22 @@ class ReportParser(object):
             tc_res['comment'] = self.perform_xml_actions(
                 child, self.tr_result_map['comment']['xml_actions']
             )
-            raw_results.append(tc_res)
+            self.raw_results.append(tc_res)
+
+    def get_result_list(self, xml_file):
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
+
+        if root.tag == "testsuites":
+            for testsuite in root:
+                self._get_result_testsuite(testsuite)
+        else:
+            self._get_result_testsuite(root)
 
         results = {'results': [],
                    'results_setup': [],
                    'results_teardown': []}
-        for res in raw_results:
+        for res in self.raw_results:
             if 'filter_setup' in self.tr_result_map:
                 pattern = self.tr_result_map['filter_setup']['match']
                 actions = self.tr_result_map['filter_setup']['actions']

@@ -1,8 +1,6 @@
 tc_tag: 'testcase'
 test_id:
   xml_actions:
-    - get_attribute: 'classname'
-    - add_string: '.'
     - get_attribute: 'name'
 status_id:
   default: 'passed'
