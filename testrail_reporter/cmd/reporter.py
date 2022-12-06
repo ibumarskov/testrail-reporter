@@ -35,7 +35,7 @@ def analyze(args, config):
     log_settings(args, config)
     LOG.debug('Testrail Test Plan: "{0}"'.format(args.tr_plan))
     LOG.debug('Testrail Test Run: "{0}"'.format(args.tr_run))
-    LOG.debug('Testrail configuration: "{0}'.format(args.tr_conf))
+    LOG.debug('Testrail configuration: "{0}"'.format(args.tr_conf))
 
     if args.tr_conf is not None:
         tr_conf = json.loads(args.tr_conf.replace("\'", '"'))

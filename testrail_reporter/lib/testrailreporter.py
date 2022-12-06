@@ -244,6 +244,12 @@ class TestRailReporter:
             LOG.info(f"Test Run {run_url} has been created")
             run = self.project.get_run(plan_entry['runs'][0]['id'])
 
+        if update_existing:
+            LOG.info("Include all cases in TestRun before proceeding to avoid "
+                     "issue if some cases were removed.")
+            data = {'include_all': True}
+            self.project.update_plan_entry(plan['id'], plan_entry['id'], data)
+
         tr_tests = list(self.project.get_tests(run['id']))
 
         # Analysis of TearDown actions should be processed for raw results to
@@ -300,8 +306,9 @@ class TestRailReporter:
             rm_statuses.append("untested")
         if rm_statuses:
             LOG.info("Remove tests with statuses: {}".format(rm_statuses))
-            rm_tests = self.get_tests_by_status(run['id'], rm_statuses)
-            case_ids = list(map(lambda a: a['case_id'], rm_tests))
+            filtered_tests = self.remove_tests_by_status(run['id'],
+                                                         rm_statuses)
+            case_ids = list(map(lambda a: a['case_id'], filtered_tests))
             data = {'include_all': False,
                     'case_ids': case_ids}
             if configuration:
@@ -309,7 +316,7 @@ class TestRailReporter:
             self.project.update_plan_entry(plan['id'], plan_entry['id'], data)
         LOG.info("Completed.")
 
-    def get_tests_by_status(self, run_id, statuses):
+    def remove_tests_by_status(self, run_id, statuses):
         status_ids = list(map(lambda a: a['id'], self.project.statuses))
         for status in statuses:
             status_ids.remove(self.project.get_status_by_label(status))
