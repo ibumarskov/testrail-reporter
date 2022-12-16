@@ -12,6 +12,11 @@ status_id:
             - add_string: 'failed'
     - check:
         child:
+          tag: 'error'
+          xml_actions:
+            - add_string: 'failed'
+    - check:
+        child:
           tag: 'skipped'
           xml_actions:
             - add_string: 'skipped'
@@ -21,6 +26,11 @@ comment:
     - check:
         child:
           tag: 'failure'
+          xml_actions:
+            - get_element_text:
+    - check:
+        child:
+          tag: 'error'
           xml_actions:
             - get_element_text:
     - check:
