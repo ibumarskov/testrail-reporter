@@ -1,4 +1,5 @@
 import copy
+import json
 import logging
 import sys
 
@@ -284,14 +285,19 @@ class TestRailReporter:
             results_setup = self.match_group2tests(res, tr_tests)
             results['results'].extend(results_setup)
 
-        if tr_limit and sys.getsizeof(results['results']) > tr_limit:
+        res_size = sys.getsizeof(json.dumps(results['results']))
+        LOG.info(f"Size of json results is {res_size} bytes.")
+        if tr_limit and res_size > tr_limit:
             LOG.info(f"Results data limit ({tr_limit} bytes) is exceeded. "
                      f"Data will be divided into several requests.")
             batch = []
             for res in results['results']:
-                if sys.getsizeof(batch) + sys.getsizeof(res) < tr_limit:
+                batch_size = sys.getsizeof(json.dumps(batch))
+                if batch_size + sys.getsizeof(json.dumps(res)) < tr_limit:
                     batch.append(res)
                 else:
+                    LOG.info(f"Batch size: {batch_size} bytes. "
+                             f"Number of entries: {len(batch)}")
                     self.project.add_results(run['id'], {'results': batch})
                     batch = []
         else:
