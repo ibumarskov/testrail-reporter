@@ -1,6 +1,7 @@
 import copy
 import re
 import xml.etree.ElementTree as ET
+
 import yaml
 
 from testrail_reporter.lib.actions import perform_actions

@@ -6,11 +6,11 @@ import sys
 import pkg_resources
 
 from testrail_reporter.lib.config import Config
-from testrail_reporter.lib.settings import TRR_LOG_FILE, TRR_LOG_LEVEL
 from testrail_reporter.lib.reportparser import ReportParser
+from testrail_reporter.lib.settings import TRR_LOG_FILE, TRR_LOG_LEVEL
 from testrail_reporter.lib.testcaseparser import TestCaseParser
-from testrail_reporter.lib.testrailanalyzer import CheckListParser, \
-    TestRailAnalyzer
+from testrail_reporter.lib.testrailanalyzer import (CheckListParser,
+                                                    TestRailAnalyzer)
 from testrail_reporter.lib.testrailproject import TestRailProject
 from testrail_reporter.lib.testrailreporter import TestRailReporter
 

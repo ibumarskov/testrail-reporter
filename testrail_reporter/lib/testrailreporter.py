@@ -6,7 +6,7 @@ import sys
 import pkg_resources
 import yaml
 
-from testrail_reporter.lib.exceptions import NotFound, Conflict
+from testrail_reporter.lib.exceptions import Conflict, NotFound
 from testrail_reporter.lib.testrailproject import TestRailProject
 
 LOG = logging.getLogger(__name__)

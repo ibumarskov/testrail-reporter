@@ -1,4 +1,5 @@
 import copy
+
 import yaml
 
 from testrail_reporter.lib.actions import perform_actions
