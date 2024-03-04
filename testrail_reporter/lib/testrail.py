@@ -15,6 +15,7 @@ Copyright Gurock Software GmbH. See license.md for details.
 import base64
 import json
 import logging
+import re
 import sys
 import time
 
@@ -24,13 +25,22 @@ LOG = logging.getLogger(__name__)
 LOG.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def retry_429(func, timeout=5):
+def retry_429(func, timeout=15):
+    def _parse_retry_time(msg):
+        pattern = r'Retry after (\d+) seconds'
+        match = re.search(pattern, msg)
+        if match:
+            return int(match.group(1))
+        else:
+            return timeout
+
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except APIError429 as e:
             LOG.warning(f"{e.message}")
-            LOG.info(f"Retry after {timeout}")
+            retry_time = _parse_retry_time(e.message)
+            LOG.info(f"Retry after {retry_time}")
             time.sleep(timeout)
             return func(*args, **kwargs)
     return wrapper
