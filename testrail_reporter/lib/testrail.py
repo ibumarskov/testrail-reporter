@@ -39,7 +39,7 @@ def retry_429(func, timeout=15):
             return func(*args, **kwargs)
         except APIError429 as e:
             LOG.warning(f"{e.message}")
-            retry_time = _parse_retry_time(e.message)
+            retry_time = _parse_retry_time(str(e.message))
             LOG.info(f"Retry after {retry_time}")
             time.sleep(timeout)
             return func(*args, **kwargs)
