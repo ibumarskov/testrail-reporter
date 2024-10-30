@@ -25,7 +25,7 @@ LOG = logging.getLogger(__name__)
 LOG.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def retry_429(func, timeout=15):
+def retry_429(func, timeout=60):
     def _parse_retry_time(msg):
         pattern = r'Retry after (\d+) seconds'
         match = re.search(pattern, msg)
@@ -41,7 +41,7 @@ def retry_429(func, timeout=15):
             LOG.warning(f"{e.message}")
             retry_time = _parse_retry_time(str(e.message))
             LOG.info(f"Retry after {retry_time}")
-            time.sleep(timeout)
+            time.sleep(retry_time+1)
             return func(*args, **kwargs)
     return wrapper
 

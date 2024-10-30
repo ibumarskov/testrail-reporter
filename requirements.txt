@@ -3,4 +3,3 @@ pyyaml
 tox
 wheel
 requests
-re
