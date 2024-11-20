@@ -13,17 +13,16 @@ class ReportParser(object):
 
     @staticmethod
     def convert(value, ctype):
-        match ctype:
-            case "int":
-                return int(value.split('.')[0])
-            case "str":
-                return str(value)
-            case "bool":
-                return bool(value)
-            case "":
-                return value
-            case _:
-                raise Exception(f"Unknown type for conversion: {ctype}")
+        if ctype == "int":
+            return int(value.split('.')[0])
+        elif ctype == "str":
+            return str(value)
+        elif ctype == "bool":
+            return bool(value)
+        elif ctype == "":
+            return value
+        else:
+            raise Exception(f"Unknown type for conversion: {ctype}")
 
     def get_result_list(self):
         pass
