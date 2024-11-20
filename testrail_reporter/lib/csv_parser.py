@@ -12,7 +12,7 @@ class CSVParser(ReportParser):
             default = map['default']
         if 'row_name' in map:
             val = row[map['row_name']]
-        if not val and default:
+        if not val and default is not None:
             val = default
         if 'convert_type' in map:
             val = self.convert(val, map['convert_type'])
