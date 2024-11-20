@@ -6,7 +6,7 @@ import sys
 import pkg_resources
 
 from testrail_reporter.lib.config import Config
-from testrail_reporter.lib.reportparser import ReportParser
+from testrail_reporter.lib.dynamic_parser import DynamicReportParser
 from testrail_reporter.lib.settings import TRR_LOG_FILE, TRR_LOG_LEVEL
 from testrail_reporter.lib.testcaseparser import TestCaseParser
 from testrail_reporter.lib.testrailanalyzer import (CheckListParser,
@@ -79,9 +79,10 @@ def publish(args, config):
     else:
         tr_conf = None
 
-    report = ReportParser(tr_result_attrs=tr_result_attrs,
-                          tr_result_map=tr_result_map)
-    results = report.get_result_list(args.report_path)
+    parser = DynamicReportParser(args.report_path,
+                                 tr_result_attrs=tr_result_attrs,
+                                 tr_result_map=tr_result_map)
+    results = parser.get_result_list()
 
     reporter = TestRailReporter(url=config.url,
                                 user=config.user,
