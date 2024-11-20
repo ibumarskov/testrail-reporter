@@ -3,6 +3,8 @@ test_id:
   row_name: 'Name'
 status_id:
   default: 'passed'
+comment:
+  default: ''
 custom_request_count:
   row_name: 'Request Count'
   convert_type: 'int'
