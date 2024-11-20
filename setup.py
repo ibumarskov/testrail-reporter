@@ -5,9 +5,9 @@ with open('README.md') as f:
 
 setup(
     name='testrail-reporter-tool',
-    version='1.2.2',
+    version='1.3.0',
     packages=find_packages(),
-    package_data={'': ['etc/*', 'etc/maps/pytest/*', 'etc/maps/tempest/*']},
+    package_data={'': ['etc/*', 'etc/maps/locust/*', 'etc/maps/pytest/*', 'etc/maps/tempest/*']},
     python_requires='>=3.6',
     install_requires=[
         'flake8',

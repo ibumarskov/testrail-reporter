@@ -90,6 +90,21 @@ Set the TestRail parameters before using the script:
 
 ### Template for results
 
+Template describes how to parse test results file. Current version contains two parsers: for xml and csv files.
+
+#### CSV Parser
+
+Example of structure:
+
+    tr_attribute_name:  # Name of TestRail attribute
+        row_name: <name> # (required) name of column with target data
+        default: <default_value> # (optional) Default value for attribute
+        convert_type: <type> # (optional) Type
+
+Example of template: *testrail_reporter/etc/maps/locust/result_template.yaml*
+
+#### XML Parser
+
 **Attributes description:**
 
 - *tc_tag* - name of xml element's tag that contains test case result. XML elements with another tags (exclude child elements) will be ignored.
@@ -97,7 +112,7 @@ Set the TestRail parameters before using the script:
 - *status_id* - section describes action for generation of test status.
 - *comments* - section describes action for generation of comments (logs).
 
-Each section can contains following attributes:
+Each section can contain following attributes:
 - *default* - default value for attribute if action returns empty string (not applicable for test_id section)
 - *xml_actions* - actions that will be applied for xml element. Description of supported XML actions can be found [below](#xml-actions). 
 
