@@ -1,0 +1,31 @@
+#CSV result template
+test_id:
+  row_name: 'Name'
+status_id:
+  default: 'passed'
+custom_request_count:
+  row_name: 'Request Count'
+  convert_type: 'int'
+custom_failure_count:
+  row_name: 'Failure Count'
+custom_med_response_time:
+  row_name: 'Median Response Time'
+  convert_type: 'int'
+custom_avg_response_time:
+  row_name: 'Average Response Time'
+  convert_type: 'int'
+custom_min_response_time:
+  row_name: 'Min Response Time'
+  convert_type: 'int'
+custom_max_response_time:
+  row_name: 'Max Response Time'
+  convert_type: 'int'
+custom_avg_content_size:
+  row_name: 'Average Content Size'
+  convert_type: 'int'
+custom_requests_per_second:
+  row_name: 'Requests/s'
+  convert_type: 'str'
+custom_failures_per_second:
+  row_name: 'Failures/s'
+  convert_type: 'str'
