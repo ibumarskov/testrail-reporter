@@ -92,3 +92,50 @@ class TestRailAnalyzer:
             for check_obj in check_list_obj.attrs['tests']:
                 if test['title'] == check_obj['title']:
                     self._check_errors(check_obj, test)
+
+
+class Analyzer(object):
+    def __init__(self, check_list):
+        with open(check_list, 'r') as stream:
+            self.attrs = yaml.safe_load(stream)
+        self._check_structure()
+
+    def _check_structure(self):
+        for test in self.attrs['tests']:
+            if 'title' not in test:
+                raise NotFound("Title attribute")
+            if 'status' not in test:
+                raise NotFound("Status attribute")
+            if 'errors' not in test:
+                test['errors'] = None
+            if 'defects' not in test:
+                test['defects'] = None
+
+    def _check_errors(self, check_obj, test_result):
+        if check_obj['errors']:
+            for err in check_obj['errors']:
+                if not test_result['comment']:
+                    LOG.warning(f"Test result for {test_result['test_id']} doesn't contain any log.")
+                    return False
+                if err in html.unescape(test_result['comment']):
+                    pass
+                else:
+                    LOG.info("Can't find string: {}".format(err))
+                    LOG.warning(f"Test results for {test_result['test_id']} don't match know issue.")
+                    return False
+        LOG.info(f"Test {test_result['test_id']} set to {check_obj['status']}")
+        return True
+
+    def analyze(self, test_results):
+        # Analyze list of failed test cases and return modified list with detected issues
+        unprocessed = []
+        for test_res in test_results:
+            for check_obj in self.attrs['tests']:
+                if test_res['test_id'] == check_obj['title']:
+                    if not self._check_errors(check_obj, test_res):
+                        unprocessed.append(test_res)
+                    break
+            else:
+                LOG.warning(f"Test {test_res['test_id']} wasn't find in test analyzer list.")
+                unprocessed.append(test_res)
+        return unprocessed

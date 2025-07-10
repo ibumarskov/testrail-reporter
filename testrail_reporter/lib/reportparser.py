@@ -9,7 +9,7 @@ class ReportParser(object):
             self.tr_result_attrs = yaml.safe_load(stream)
         with open(tr_result_map, 'r') as stream:
             self.tr_result_map = yaml.safe_load(stream)
-        self.raw_results = []
+        self._raw_results = []
 
     @staticmethod
     def convert(value, ctype):
@@ -23,6 +23,15 @@ class ReportParser(object):
             return value
         else:
             raise Exception(f"Unknown type for conversion: {ctype}")
+
+    @property
+    def raw_results(self):
+        if not self._raw_results:
+            self.processing()
+        return self._raw_results
+
+    def processing(self):
+        pass
 
     def get_result_list(self):
         pass

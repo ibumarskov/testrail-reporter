@@ -9,6 +9,17 @@ from testrail_reporter.lib.reportparser import ReportParser
 
 class XMLParser(ReportParser):
 
+    def processing(self):
+        self._raw_results = []
+        tree = ET.parse(self.file)
+        root = tree.getroot()
+
+        if root.tag == "testsuites":
+            for testsuite in root:
+                self._get_result_testsuite(testsuite)
+        else:
+            self._get_result_testsuite(root)
+
     def _get_result_testsuite(self, testsuite):
         for child in testsuite:
             if child.tag != self.tr_result_map['tc_tag']:
@@ -34,17 +45,9 @@ class XMLParser(ReportParser):
             tc_res['comment'] = self.perform_xml_actions(
                 child, self.tr_result_map['comment']['xml_actions']
             )
-            self.raw_results.append(tc_res)
+            self._raw_results.append(tc_res)
 
     def get_result_list(self):
-        tree = ET.parse(self.file)
-        root = tree.getroot()
-
-        if root.tag == "testsuites":
-            for testsuite in root:
-                self._get_result_testsuite(testsuite)
-        else:
-            self._get_result_testsuite(root)
 
         results = {'results': [],
                    'results_setup': [],
@@ -71,6 +74,9 @@ class XMLParser(ReportParser):
                     continue
             results['results'].append(res)
         return results
+
+    def get_fails(self):
+        return list(filter(lambda res: True if res['status_id'] == "failed" else False, self.raw_results))
 
     @staticmethod
     def action_get_attribute(child, attr_name):

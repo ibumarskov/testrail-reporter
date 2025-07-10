@@ -10,7 +10,8 @@ from testrail_reporter.lib.dynamic_parser import DynamicReportParser
 from testrail_reporter.lib.settings import TRR_LOG_FILE, TRR_LOG_LEVEL
 from testrail_reporter.lib.testcaseparser import TestCaseParser
 from testrail_reporter.lib.testrailanalyzer import (CheckListParser,
-                                                    TestRailAnalyzer)
+                                                    TestRailAnalyzer,
+                                                    Analyzer)
 from testrail_reporter.lib.testrailproject import TestRailProject
 from testrail_reporter.lib.testrailreporter import TestRailReporter
 
@@ -27,6 +28,35 @@ def log_settings(args, config):
     LOG.debug('URL: "{0}"'.format(config.url))
     LOG.debug('User: "{0}"'.format(config.user))
     LOG.debug('Testrail Project name: "{0}"'.format(args.tr_project))
+
+
+def analyze_report(args, config):
+    LOG.info('========== Run analyzer of test results (file) ==========')
+    LOG.info('Check list file: "{0}"'.format(args.check_list_path))
+    LOG.info('Report file: "{0}"'.format(args.report_path))
+
+    if not args.tr_result_attrs:
+        rpath = '/'.join(('etc', 'tr_result_attrs.yaml'))
+        tr_result_attrs = pkg_resources.resource_filename("testrail_reporter",
+                                                          rpath)
+    else:
+        tr_result_attrs = args.tr_result_attrs
+    if not args.tr_result_map:
+        rpath = '/'.join(('etc/maps', args.map, 'result_template.yaml'))
+        tr_result_map = pkg_resources.resource_filename("testrail_reporter",
+                                                        rpath)
+    else:
+        tr_result_map = args.tr_result_attrs
+
+    parser = DynamicReportParser(args.report_path,
+                                 tr_result_attrs=tr_result_attrs,
+                                 tr_result_map=tr_result_map)
+    fails = parser.get_fails()
+
+    analyzer = Analyzer(args.check_list_path)
+    unprocessed = analyzer.analyze(fails)
+    if unprocessed:
+        sys.exit(1)
 
 
 def analyze(args, config):
@@ -135,6 +165,36 @@ def main():
     parser = argparse.ArgumentParser(prog='testrail-reporter')
     subparsers = parser.add_subparsers(help='additional help')
     # ================================ analyze ================================
+    parser_ar = subparsers.add_parser(
+        'analyze-report', help='analyze test report (results file) failures.')
+    parser_ar.add_argument(
+        'check_list_path', metavar='Check list', type=str,
+        help='Path to check list (.yml)'
+    )
+    parser_ar.add_argument(
+        'report_path', metavar='Test results report', type=str,
+        help='Path to test report (.xml)'
+    )
+    parser_ar.add_argument(
+        '--result-attrs', dest='tr_result_attrs',
+        default=None,
+        help='Set path to config file with custom result attributes '
+             '(.yaml format).'
+    )
+    parser_ar.add_argument(
+        '--map', dest='map',
+        default='tempest',
+        help='Use predefined map for parsing attributes. Supported values:'
+             'tempest, pytest, locust',
+    )
+    parser_ar.add_argument(
+        '--result-map', dest='tr_result_map',
+        default=None,
+        help='Set path to config file with custom result map. '
+             'Note: this parameter overrides predefined map parameter.'
+    )
+    parser_ar.set_defaults(func=analyze_report)
+    # ================================ analyze ================================
     parser_a = subparsers.add_parser(
         'analyze', help='analyze test run failures.')
     parser_a.add_argument(
@@ -163,8 +223,8 @@ def main():
     parser_b = subparsers.add_parser(
         'publish', help='publish test results to TestRail.')
     parser_b.add_argument(
-        'report_path', metavar='Tempest report', type=str,
-        help='Path to tempest report (.xml)'
+        'report_path', metavar='Test report', type=str,
+        help='Path to test report (.xml)'
     )
     parser_b.add_argument(
         '-p', dest='tr_project', default=None,
