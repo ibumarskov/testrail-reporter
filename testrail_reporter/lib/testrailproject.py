@@ -145,7 +145,8 @@ class TestRailProject(TestRailAPICalls):
         return super(TestRailProject, self).get_templates(self.project['id'])
 
     def get_suite_by_name(self, name):
-        for suite in self.get_suites_project():
+        suites = self.get_suites_project()
+        for suite in suites['suites']:
             if suite['name'] == name:
                 return self.get_suite(suite_id=suite['id'])
         raise NotFound("Suite {}".format(name))
