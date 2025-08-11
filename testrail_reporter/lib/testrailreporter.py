@@ -7,6 +7,7 @@ import pkg_resources
 import yaml
 
 from testrail_reporter.lib.exceptions import Conflict, NotFound
+from testrail_reporter.lib.settings import TRR_TITLE_MAX_LENGTH
 from testrail_reporter.lib.testrailproject import TestRailProject
 
 LOG = logging.getLogger(__name__)
@@ -24,8 +25,8 @@ class TestRailReporter:
         with open(attr2id_map, 'r') as stream:
             self.attr2id_map = yaml.safe_load(stream)
 
-    @staticmethod
-    def _convert_test2id(result, tr_tests):
+    def _convert_test2id(self, result, tr_tests):
+        result['test_id'] = self._check_title_length(result['test_id'])
         for tr_res in tr_tests:
             if result['test_id'] == tr_res['title']:
                 result['test_id'] = tr_res['id']
@@ -41,6 +42,15 @@ class TestRailReporter:
                 res['test_id'] = test['id']
                 results.append(res)
         return results
+
+    @staticmethod
+    def _check_title_length(title):
+        if len(title) > TRR_TITLE_MAX_LENGTH:
+            new_title = title[:TRR_TITLE_MAX_LENGTH]
+            LOG.warning(f"Title exceeds the max length ({TRR_TITLE_MAX_LENGTH}). Cut it:\n"
+                        f"{title} ->\n{new_title}")
+            return new_title
+        return title
 
     def _convert_casetype2id(self, test_case):
         for i in self.project.get_case_types():
@@ -176,6 +186,8 @@ class TestRailReporter:
                 for tr_tc in tr_cases[section_id]['cases']:
                     tr_cases[section_id]['titles'].append(tr_tc['title'])
 
+            # Check title length
+            tc['title'] = self._check_title_length(tc['title'])
             if tc['title'] not in tr_cases[section_id]['titles']:
                 LOG.info("Create case: {}".format(tc['title']))
                 self.project.add_case(section_id, tc)
