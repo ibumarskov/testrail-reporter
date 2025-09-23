@@ -489,6 +489,8 @@ class TestRailAPICalls(object):
         uri = 'get_user_by_email&email={email}'.format(email=email)
         return self.client.send_get(uri)
 
-    def get_users(self):
+    def get_users(self, project_id=None):
         uri = 'get_users'
+        if project_id:
+            uri += '/{project_id}'.format(project_id=project_id)
         return self.client.send_get(uri)

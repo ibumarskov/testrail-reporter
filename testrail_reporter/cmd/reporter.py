@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import sys
+from datetime import datetime, timedelta
 
 import pkg_resources
 
@@ -128,6 +129,23 @@ def update_suite(args, config):
                                 password=config.password,
                                 project_name=args.tr_project)
     reporter.update_test_suite(args.tr_suite, tc_list)
+
+
+def cleanup(args, config):
+    LOG.info('========== Delete test results ==========')
+    LOG.info('Days: "{0}"'.format(args.days))
+    log_settings(args, config)
+    LOG.debug('Remove completed runs: "{0}"'.format(args.remove_completed))
+    LOG.debug('Created by specified user: "{0}"'.format(args.tr_user))
+    period = datetime.now() - timedelta(days=args.days)
+    LOG.info('Delete test runs older than "{0}"'.format(period))
+
+    reporter = TestRailReporter(url=config.url,
+                                user=config.user,
+                                password=config.password,
+                                project_name=args.tr_project)
+    reporter.cleanup_test_runs(period, remove_completed=args.remove_completed,
+                               user_name=args.tr_user)
 
 
 def main():
@@ -271,6 +289,28 @@ def main():
              'Note: this parameter overrides predefined map parameter.'
     )
     parser_c.set_defaults(func=update_suite)
+    # ================================ cleanup ================================
+    parser_d = subparsers.add_parser(
+        'cleanup', help='Cleanup Test Runs.')
+    parser_d.add_argument(
+        'days', metavar='Age (in days)', type=int,
+        help='Test runs older that specified number of days will be deleted. '
+             'Completed test runs will not be deleted by default (if the corresponding flag is not set).'
+    )
+    parser_d.add_argument(
+        '-p', dest='tr_project', default=None,
+        help='TestRail Project name.'
+    )
+    parser_d.add_argument(
+        '--completed', dest='remove_completed', action="store_true",
+        default=False,
+        help='Include completed test runs.'
+    )
+    parser_d.add_argument(
+        '--user', dest='tr_user', default=None,
+        help='Include only test runs created by specified user.'
+    )
+    parser_d.set_defaults(func=cleanup)
     # =========================================================================
     args = parser.parse_args()
     args.func(args, config)

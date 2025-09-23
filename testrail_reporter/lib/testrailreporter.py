@@ -2,6 +2,7 @@ import copy
 import json
 import logging
 import sys
+from datetime import datetime
 
 import pkg_resources
 import yaml
@@ -342,3 +343,38 @@ class TestRailReporter:
             status_ids.remove(self.project.get_status_by_label(status))
         tests_filter = self.project.get_tests_filter(status_id=status_ids)
         return list(self.project.get_tests(run_id, filter=tests_filter))
+
+    def cleanup_test_runs(self, date, remove_completed=False, user_name=None):
+        user_id = None
+        if user_name:
+            for user in self.project.get_users():
+                if user['name'] == user_name:
+                    user_id = user['id']
+            assert user_id, f"User {user_name} wasn't found"
+
+        def _check_conditions(tr_run):
+            if user_name:
+                if tr_run['created_by'] != user_id:
+                    LOG.info(f"Skip by user (Not created by {user_name})")
+                    return False
+            if tr_run['is_completed'] and not remove_completed:
+                LOG.info(f"Skip by completed flag (remove_completed: {remove_completed})")
+                return False
+            return True
+
+        # Cleanup Test Runs
+        for run in self.project.get_runs_project():
+            run_created_date = datetime.fromtimestamp(run['created_on'])
+            if run_created_date < date and _check_conditions(run):
+                LOG.warning(f"Deleting the test run (id: {run['id']}): {run['name']}")
+                self.project.delete_run(run['id'])
+            else:
+                LOG.info(f"Skipping the test run (id: {run['id']}): {run['name']}")
+        # Cleanup Test Plans
+        for plan in self.project.get_plans_project():
+            run_created_date = datetime.fromtimestamp(plan['created_on'])
+            if run_created_date < date and _check_conditions(plan):
+                LOG.warning(f"Deleting the test plan (id: {plan['id']}): {plan['name']}")
+                self.project.delete_plan(plan['id'])
+            else:
+                LOG.info(f"Skipping the test plan (id: {plan['id']}): {plan['name']}")

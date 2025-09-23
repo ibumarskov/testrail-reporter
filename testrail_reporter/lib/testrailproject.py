@@ -79,6 +79,11 @@ class TestRailProject(TestRailAPICalls):
         yield from self._get_all(
             super(TestRailProject, self).get_tests(run_id, filter), 'tests')
 
+    def get_users(self, project_id=None):
+        yield from self._get_all(
+            super(TestRailProject, self).get_users(project_id=project_id),
+            'users')
+
     def _get_all(self, response, entity):
         for ent in response[entity]:
             yield ent
@@ -143,6 +148,9 @@ class TestRailProject(TestRailAPICalls):
 
     def get_templates_project(self):
         return super(TestRailProject, self).get_templates(self.project['id'])
+
+    def get_users_project(self):
+        return self.get_users(project_id=self.project['id'])
 
     def get_suite_by_name(self, name):
         suites = self.get_suites_project()

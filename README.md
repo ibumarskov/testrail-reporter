@@ -86,6 +86,19 @@ Set the TestRail parameters before using the script:
       -r TR_RUN      TestRail Run name.
       -c TR_CONF     Set configuration for test entry (Test Run). Example: -c "{'Operating Systems':'Ubuntu 18.04'}"
 
+### Cleanup Test runs
+
+    usage: testrail-reporter cleanup [-h] [-p TR_PROJECT] [--completed] [--user TR_USER] Age (in days)
+
+    positional arguments:
+      Age (in days)   Test runs older that specified number of days will be deleted. Completed test runs will not be deleted by default (if the corresponding flag is not set).
+    
+    options:
+      -h, --help      show this help message and exit
+      -p TR_PROJECT   TestRail Project name.
+      --completed     Include completed test runs.
+      --user TR_USER  Include only test runs created by specified user.
+
 ## Templates and actions
 
 ### Template for results
