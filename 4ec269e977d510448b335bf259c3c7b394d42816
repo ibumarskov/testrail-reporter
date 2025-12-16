@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "60af7f20_0f2ae633",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1011059
+      },
+      "writtenOn": "2025-12-16T09:22:35Z",
+      "side": 1,
+      "message": "pep8: commands[0]\u003e python -m flake8\n  pep8: OK (0.36\u003dsetup[0.03]+cmd[0.33] seconds)\n  congratulations :) (0.41 seconds)",
+      "revId": "4ec269e977d510448b335bf259c3c7b394d42816",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
