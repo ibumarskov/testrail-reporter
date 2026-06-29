@@ -248,10 +248,12 @@ class TestRailReporter:
                                                    run_data)
                 break
         if run is None:
-            run_data = {'suite_id': suite['id'], 'name': run_name}
+            run_data = {'suite_id': suite['id'], 'name': run_name,
+                        'include_all': True}
             if configuration:
                 run_data["config_ids"] = conf_ids
-                run_data["runs"] = [{"config_ids": conf_ids}]
+                run_data["runs"] = [{"config_ids": conf_ids,
+                                     "include_all": True}]
             if tr_run_descr:
                 descr = self.update_description(None, tr_run_descr)
                 run_data['description'] = descr
