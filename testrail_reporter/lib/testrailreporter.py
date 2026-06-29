@@ -55,6 +55,33 @@ class TestRailReporter:
             return new_title
         return title
 
+    def _resolve_case_id(self, title, case_titles):
+        title = self._check_title_length(title)
+        if title in case_titles:
+            return case_titles[title]
+        for case_title, case_id in case_titles.items():
+            if title in case_title:
+                return case_id
+        raise NotFound("Can't find case: {}".format(title))
+
+    def _get_case_ids_from_results(self, results, suite_id):
+        cases = self.project.get_cases_project(suite_id=suite_id)
+        case_titles = {case['title']: case['id'] for case in cases}
+        case_ids = []
+        seen = set()
+        for key in ('results', 'results_setup', 'results_teardown'):
+            for res in results.get(key, []):
+                test_id = res.get('test_id')
+                if not isinstance(test_id, str):
+                    continue
+                case_id = self._resolve_case_id(test_id, case_titles)
+                if case_id not in seen:
+                    seen.add(case_id)
+                    case_ids.append(case_id)
+        if not case_ids:
+            raise NotFound("Can't resolve case IDs from report results")
+        return case_ids
+
     def _convert_casetype2id(self, test_case):
         for i in self.project.get_case_types():
             if test_case['type_id'] == i['name']:
@@ -248,10 +275,14 @@ class TestRailReporter:
                                                    run_data)
                 break
         if run is None:
-            run_data = {'suite_id': suite['id'], 'name': run_name}
+            case_ids = self._get_case_ids_from_results(results, suite['id'])
+            run_data = {'suite_id': suite['id'], 'name': run_name,
+                        'include_all': False, 'case_ids': case_ids}
             if configuration:
                 run_data["config_ids"] = conf_ids
-                run_data["runs"] = [{"config_ids": conf_ids}]
+                run_data["runs"] = [{"config_ids": conf_ids,
+                                     "include_all": False,
+                                     "case_ids": case_ids}]
             if tr_run_descr:
                 descr = self.update_description(None, tr_run_descr)
                 run_data['description'] = descr
@@ -261,9 +292,12 @@ class TestRailReporter:
             run = self.project.get_run(plan_entry['runs'][0]['id'])
 
         if update_existing:
-            LOG.info("Include all cases in TestRun before proceeding to avoid "
-                     "issue if some cases were removed.")
-            data = {'include_all': True}
+            case_ids = self._get_case_ids_from_results(results, suite['id'])
+            LOG.info("Limit TestRun to {} cases from report before proceeding."
+                     .format(len(case_ids)))
+            data = {'include_all': False, 'case_ids': case_ids}
+            if configuration:
+                data["config_ids"] = conf_ids
             self.project.update_plan_entry(plan['id'], plan_entry['id'], data)
 
         tr_tests = list(self.project.get_tests(run['id']))
